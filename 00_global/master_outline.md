@@ -1,8 +1,8 @@
 ---
 schema: master_outline
-current_topic: NONE
-current_action: MASTER_REVIEW
-master_checkpoint: NONE
+current_topic: STA_XDC
+current_action: TUTOR
+master_checkpoint: STA_XDC-GATE-G1
 ---
 
 # Master Outline
