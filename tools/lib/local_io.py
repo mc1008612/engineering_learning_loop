@@ -13,6 +13,7 @@ Engineering Learning Loop 的本机 I/O 辅助模块。
 from __future__ import annotations
 
 from pathlib import Path
+import base64
 import json
 import os
 import platform
@@ -49,22 +50,43 @@ def save_settings(updates: dict[str, str | None]) -> dict[str, str]:
 def copy_to_system_clipboard(text: str) -> tuple[bool, str]:
     """仅使用系统命令；失败时返回 warning，不抛出异常。"""
     system = platform.system().lower()
-    candidates: list[list[str]] = []
+    # 每个候选为 (命令, stdin 内容, stdin 编码)；编码为 None 表示不写 stdin。
+    candidates: list[tuple[list[str], str | None, str | None]] = []
     if system == "windows":
+        # PowerShell 把管道 stdin 按系统代码页（中文 Windows 为 GBK）解码，直接传
+        # UTF-8 文本会变成乱码；经 base64 传输再按 UTF-8 还原，与代码页完全无关。
+        b64 = base64.b64encode(text.encode("utf-8")).decode("ascii")
         candidates = [
-            ["powershell", "-NoProfile", "-Command", "Set-Clipboard -Value ([Console]::In.ReadToEnd())"],
-            ["clip"],
+            (
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-Command",
+                    "Set-Clipboard -Value ([Text.Encoding]::UTF8.GetString"
+                    f"([Convert]::FromBase64String('{b64}')))",
+                ],
+                None,
+                None,
+            ),
+            # clip.exe 只认带 BOM 的 Unicode 文本；Python 的 "utf-16" 编码会自带 BOM。
+            (["clip"], text, "utf-16"),
         ]
     elif system == "darwin":
-        candidates = [["pbcopy"]]
+        candidates = [(["pbcopy"], text, "utf-8")]
     else:
-        candidates = [["wl-copy"], ["xclip", "-selection", "clipboard"], ["xsel", "--clipboard", "--input"]]
+        candidates = [
+            (["wl-copy"], text, "utf-8"),
+            (["xclip", "-selection", "clipboard"], text, "utf-8"),
+            (["xsel", "--clipboard", "--input"], text, "utf-8"),
+        ]
 
-    for cmd in candidates:
+    for cmd, payload, encoding in candidates:
         if shutil.which(cmd[0]) is None:
             continue
         try:
-            p = subprocess.run(cmd, input=text, text=True, encoding="utf-8", check=False)
+            p = subprocess.run(
+                cmd, input=payload, text=encoding is not None, encoding=encoding, check=False
+            )
             if p.returncode == 0:
                 return True, cmd[0]
         except OSError:
