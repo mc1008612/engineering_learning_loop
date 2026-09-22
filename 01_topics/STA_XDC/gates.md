@@ -49,7 +49,7 @@ Mandatory Criteria 全部满足 + 至少一条当前 Gate 的 `PASS` Evidence + 
 
 ## STA_XDC-GATE-G2 — Clock 与 I/O Constraints
 
-Status: `DRAFT`
+Status: `OPEN`
 Mandatory: `YES`
 
 ### Objective

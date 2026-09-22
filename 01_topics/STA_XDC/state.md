@@ -2,9 +2,9 @@
 schema: topic_state
 topic: STA_XDC
 status: ACTIVE
-current_gate: STA_XDC-GATE-G1
-master_review_required: true
-master_review_reason: CURRICULUM_CHECKPOINT
+current_gate: STA_XDC-GATE-G2
+master_review_required: false
+master_review_reason: NONE
 last_lesson_id: STA_XDC-LSN-20260922-132735
 ---
 
@@ -16,10 +16,10 @@ Objective:
 建立可独立调用的 STA/XDC 工程能力，能约束、审查并关闭常见同步设计时序问题。
 
 Reason:
-当前该能力为 L1，同时是后续 Clock/Reset、CDC、LVDS 和高速数据通路学习的共同基础。
+当前该能力为 L2，同时是后续 Clock/Reset、CDC、LVDS 和高速数据通路学习的共同基础。
 
 ## Current Objective
-建立同步时序分析的基本心智模型，并能独立阅读基础 Timing Report。
+能够基于明确的接口时序假设编写和审查基本 Clock 与 I/O Constraints。
 
 ## Current Snapshot
 
@@ -27,7 +27,7 @@ Passed:
 - STA_XDC-GATE-G1：同步时序模型与 Timing Report 阅读已完成验收。
 
 In Progress:
-- NONE
+- STA_XDC-GATE-G2：Clock 与 I/O Constraints——基础时钟约束、input/output delay 转换与约束覆盖检查。
 
 Not Yet Verified:
 - NONE
