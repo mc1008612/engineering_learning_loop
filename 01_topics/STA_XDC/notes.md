@@ -13,6 +13,7 @@ mutation: CURATED
 - Timing 诊断应逐层推进：Slack 是症状，Cell/Route 构成给出主导因素，Details 的 Incr 定位具体段，再结合 placement/fanout 等物理信息追根因；不要从一个 Summary 数字直接宣布根因。
 - 流水线〈Pipeline〉通过插入寄存器把一条长组合路径拆成多条更短的时序路径；它增加功能 Latency，但填满后可保持每拍吞吐。后级重新汇合的各数据分支必须保持流水级对齐。
 - 保持路径的危险程度不能仅由 Logic Levels 或 Route Delay 长短预测；必须同时比较 Data Arrival Time 与 Data Required Time，包括 endpoint hold requirement、clock skew/CPR 等 required-side 因素。
+- 对于寄存器发起的数据时序路径，Data Timing Path（数据时序路径）的 Startpoint（起点）是寄存器 Q；寄存器 C 属于 Clock Path（时钟路径），不是数据路径 Startpoint。
 
 ## Engineering Rules
 
@@ -35,6 +36,7 @@ mutation: CURATED
 - 把 Post-Synthesis 的 unplaced Route Delay 当成实际布线延迟。
 - 仅凭 Logic Levels 最少就断定它一定是最差 Hold 路径，而忽略 endpoint hold requirement 与 clock path required-side 因素。
 - 看到 Route Delay 占比高就直接归因于 Router，而没有继续检查单段 net、placement 和 fanout。
+- 把寄存器 Clock Pin（时钟引脚）C 当作 register-to-register 或 register-to-output 路径的 Startpoint；应检查路径的数据端是否从 Q 发起。
 
 ## References Worth Reusing
 

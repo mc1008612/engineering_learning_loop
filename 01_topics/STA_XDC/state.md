@@ -3,9 +3,9 @@ schema: topic_state
 topic: STA_XDC
 status: ACTIVE
 current_gate: STA_XDC-GATE-G1
-master_review_required: false
-master_review_reason: NONE
-last_lesson_id: STA_XDC-LSN-20260920-223248
+master_review_required: true
+master_review_reason: CURRICULUM_CHECKPOINT
+last_lesson_id: STA_XDC-LSN-20260922-132735
 ---
 
 # STA/XDC State
@@ -24,13 +24,13 @@ Reason:
 ## Current Snapshot
 
 Passed:
-- NONE
+- STA_XDC-GATE-G1：同步时序模型与 Timing Report 阅读已完成验收。
 
 In Progress:
-- STA_XDC-GATE-G1：同步时序模型与 Timing Report 阅读；C2/C3 已通过真实 Vivado 实操验证，C1 尚缺常见路径类别的完整独立复测。
+- NONE
 
 Not Yet Verified:
-- C1 中 input-to-register、register-to-output、input-to-output 等常见路径类别的独立识别与对应 startpoint/endpoint 判断。
+- NONE
 
 ## Current Blockers
 
@@ -38,38 +38,39 @@ Not Yet Verified:
 
 ## Revalidation Flags
 
-- 初始 STA/XDC 能力来自自评；本 Lesson 已直接验证 C2/C3 与 C1 的 register-to-register 部分，C1 完整路径类别识别仍待复测。
+- NONE
 
 ## Last Lesson
 
-Lesson ID: `STA_XDC-LSN-20260920-223248`
+Lesson ID: `STA_XDC-LSN-20260922-132735`
 Status: `COMPLETE`
 Gate: `STA_XDC-GATE-G1`
 
 Focus:
-建立同步时序分析的基本心智模型，并在 Vivado 2018.3 真实工程中阅读 Setup/Hold Timing Report。
+完成 STA_XDC-GATE-G1 的 C1 独立复测，验证常见 Timing Path Category（时序路径类别）、Startpoint（起点）/Endpoint（终点）以及内部 Launch/Capture Clock（发射/捕获时钟）的识别能力。
 
 Work:
-从 launch/capture、setup/hold、arrival/required/slack 开始，补充 startpoint/endpoint、常见 Timing Path、SCD/DCD、Clock Skew、Clock Uncertainty、Cell/Route Delay、Logic Levels、Incr/Path 等概念。Human 新建独立 Artix-7 教学工程，使用 `create_clock -period 4.000`，对比 Post-Synthesis 与 Post-Route 报告，观察 unplaced estimated net delay 到 routed delay 的变化；随后加入 pipeline register，将 12 级 LUT 长路径拆成两段约 6 级路径，并检查真实 Setup/Hold 结果。Lesson 末还确认了 Timing Path 在 Schematic/Device 中的可视化入口，但未展开 placement/routing/fanout timing closure。
+先对 register-to-register、input-to-register、register-to-output、input-to-output 四类路径做 A0 复测。Human 首轮能正确判断四类 Path Category、Endpoint 与 Launch/Capture 关系，但在 register-originated path 中两次把寄存器 Clock Pin（时钟引脚）C 写成 Startpoint。Tutor 仅指出 C 属于 Clock Path（时钟路径）、Q 才是 Data Timing Path（数据时序路径）的 Startpoint，并要求立即再次独立复测。随后 Human 在不依赖进一步提示的三类变式中，正确给出 input-to-register、register-to-output、register-to-register 的 Category、Startpoint、Endpoint 以及内部 Launch/Capture Clock 有无关系。
 
 Outcome:
-C2 与 C3 已有真实工程实操支持；C1 中 register-to-register、launch/capture、startpoint/endpoint 已表现稳定，但尚未低辅助独立复测 input-to-register、register-to-output、input-to-output 等全部常见路径类别。Human 已能从真实 Vivado 报告区分估计/实际 routing、Cell/Route 主导因素及证据边界；末尾对最差 Hold 路径的初始“route 更长”归因经报告核对后修正为 required-side（尤其 endpoint hold requirement）差异主导。
+C1 由 PARTIAL 提升为 VERIFIED。结合既有 STA_XDC-EXP-001 对 C2/C3 的真实 Vivado 实操验证，STA_XDC-GATE-G1 的 Mandatory Criteria（强制验收项）现已全部满足；本 Lesson 新产生 A0 PASS Evidence，可满足 Gate Assistance ceiling，因此请求将 STA_XDC-GATE-G1 标记为 PASSED。本结论不扩展到 Placement（布局）、Routing（布线）、Fanout（扇出）等 timing closure（时序收敛）能力。
 
 Gate Progress:
-C1: PARTIAL
+C1: VERIFIED
 C2: VERIFIED
 C3: VERIFIED
-Gate remains OPEN；未请求 PASSED。
+STA_XDC-GATE-G1: PASSED
 
 Evidence:
-STA_XDC-EXP-001
+STA_XDC-EXP-002
 
 Suggested Local Next:
-下一 Lesson 开头用 A0 做一个很短的 C1 独立复测：给出 register-to-register、input-to-register、register-to-output、input-to-output 四类路径，让 Human 独立判断 path category、startpoint/endpoint 与 launch/capture（适用时）。若通过，可将 C1 标为 VERIFIED 并评估 STA_XDC-GATE-G1 PASSED。不要在 G1 内继续展开 placement/routing/fanout timing closure；该主题留待后续 Gate。
+当前 Gate 已到达 Curriculum Checkpoint（课程检查点），请求 Master Review 处理 G1 PASSED 后的课程路由与下一 Gate 选择；不要在本 Lesson 本地继续扩展 Placement/Routing/Fanout timing closure。
 
 ## Evidence Anchors
 
 - STA_XDC-EXP-001
+- STA_XDC-EXP-002
 
 ## Open Questions / Deferred
 

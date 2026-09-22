@@ -8,7 +8,7 @@ topic_completion_rule: ALL_MANDATORY_GATES_PASSED_AND_MASTER_CONFIRMED
 
 ## STA_XDC-GATE-G1 — 同步时序模型与 Timing Report 阅读
 
-Status: `OPEN`
+Status: `PASSED`
 Mandatory: `YES`
 
 ### Objective
@@ -38,13 +38,14 @@ Mandatory Criteria 全部满足 + 至少一条当前 Gate 的 `PASS` Evidence + 
 
 ### Criterion Progress
 
-- C1: `PARTIAL`
+- C1: `VERIFIED`
 - C2: `VERIFIED`
 - C3: `VERIFIED`
 
 ### Evidence References
 
 - STA_XDC-EXP-001
+- STA_XDC-EXP-002
 
 ## STA_XDC-GATE-G2 — Clock 与 I/O Constraints
 
