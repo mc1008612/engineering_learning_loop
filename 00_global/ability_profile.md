@@ -2,7 +2,7 @@
 schema: ability_profile
 scale: L0-L6
 source: initial_self_report_baseline
-last_master_review: 2026-09-22
+last_master_review: 2026-09-23
 ---
 
 # Ability Profile
@@ -25,7 +25,7 @@ last_master_review: 2026-09-22
 |---|---:|---|
 | Verilog RTL / FSM | L3 | UART/FSM 等中小 RTL 可独立完成 |
 | Verilog TB / Functional Simulation | L3 | 能写 TB、做 Vivado 功能仿真 |
-| STA / XDC | L2 | 路径模型与 Timing Report 阅读已验证（STA_XDC-EXP-001/002）；XDC 约束编写与 timing closure 尚未建立（G2/G3） |
+| STA / XDC | L2 | 路径模型、Timing Report 阅读与基础 Clock/I-O Constraints 已验证（STA_XDC-EXP-001/002/003）；例外与 timing closure 未建立（G3），约束编写独立性待 A0 证据 |
 | Clock / Reset | L1 | 接触多时钟；reset architecture 薄弱 |
 | CDC | L2 | 双触发器/async FIFO 可用；系统化 CDC 分析不足 |
 | AXI / IP Integration | L2 | XDMA/MIG/SmartConnect 功能仿真经历；缺硬件闭环 |

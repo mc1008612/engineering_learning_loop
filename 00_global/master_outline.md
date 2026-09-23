@@ -2,7 +2,7 @@
 schema: master_outline
 current_topic: STA_XDC
 current_action: TUTOR
-master_checkpoint: STA_XDC-GATE-G2
+master_checkpoint: STA_XDC-GATE-G3
 ---
 
 # Master Outline

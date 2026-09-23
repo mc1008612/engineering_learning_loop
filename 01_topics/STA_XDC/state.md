@@ -2,9 +2,9 @@
 schema: topic_state
 topic: STA_XDC
 status: ACTIVE
-current_gate: STA_XDC-GATE-G2
-master_review_required: true
-master_review_reason: CURRICULUM_CHECKPOINT
+current_gate: STA_XDC-GATE-G3
+master_review_required: false
+master_review_reason: NONE
 last_lesson_id: STA_XDC-LSN-20260922-151406
 ---
 
@@ -19,7 +19,7 @@ Reason:
 当前该能力为 L2，同时是后续 Clock/Reset、CDC、LVDS 和高速数据通路学习的共同基础。
 
 ## Current Objective
-能够基于明确的接口时序假设编写和审查基本 Clock 与 I/O Constraints。
+能够谨慎使用时序例外，并针对常见时序违例形成可验证的 closure 策略。
 
 ## Current Snapshot
 
@@ -28,10 +28,11 @@ Passed:
 - STA_XDC-GATE-G2：基础 Clock 与 I/O Constraints、约束覆盖检查已完成验收。
 
 In Progress:
-- NONE
+- STA_XDC-GATE-G3：Exceptions 与 Timing Closure——时序例外语义、违例定位与可验证的 closure 策略。
 
 Not Yet Verified:
-- Generated Clock/MMCM、Virtual Clock 与更复杂 Source-Synchronous Interface 的系统约束建模尚未在本 Gate Mandatory Criteria 中验收。
+- STA_XDC-GATE-G3 C1–C3：时序例外语义与适用条件、常见 setup/hold 问题定位、closure 措施与报告验证均未验收。
+- Generated Clock/MMCM、Virtual Clock 与更复杂 Source-Synchronous Interface 的系统约束建模尚未验证，超出 G3 Mandatory 范围。
 
 ## Current Blockers
 
@@ -84,4 +85,4 @@ Suggested Local Next:
 
 ## Open Questions / Deferred
 
-- 等待 Master Review 决定 G2 PASSED 后的下一 Gate / Curriculum 路由。
+- Generated Clock/MMCM、Virtual Clock 与复杂源同步接口的约束建模留待后续专门安排；STA_XDC Topic 完成确认将在 G3 PASSED 后由 Master Review 处理。

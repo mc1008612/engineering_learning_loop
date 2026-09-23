@@ -90,7 +90,7 @@ Mandatory Criteria 全部满足 + 至少一条当前 Gate 的 `PASS` Evidence + 
 
 ## STA_XDC-GATE-G3 — Exceptions 与 Timing Closure
 
-Status: `DRAFT`
+Status: `OPEN`
 Mandatory: `YES`
 
 ### Objective
