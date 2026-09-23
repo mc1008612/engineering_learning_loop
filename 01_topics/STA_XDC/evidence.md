@@ -58,3 +58,26 @@ Human 在最终 A0 独立复测中，对 input-to-register、register-to-output�
 
 #### Interpretation
 该表现直接补齐 C1 对常见路径类别以及 launch/capture、startpoint/endpoint 的低辅助独立验收，可将 C1 标为 VERIFIED。结合既有 STA_XDC-EXP-001 对 C2/C3 的 PASS 证据，当前 Gate 的 Mandatory Criteria 已全部满足，且本 Evidence 为 A0，不高于 Gate Maximum A1，因此支持 STA_XDC-GATE-G1 PASSED。该 Evidence 不支撑 Placement、Routing、Fanout 或更广泛 timing closure 能力。
+
+### STA_XDC-EXP-003 — 基础 Clock/I-O Constraints 与 Vivado 约束覆盖综合验收
+
+Schema: `evidence_entry`
+Type: `ASSESSMENT`
+Result: `PASS`
+Assistance: `A1`
+Gate: `STA_XDC-GATE-G2`
+Lesson: `STA_XDC-LSN-20260922-151406`
+Observed At: `2026-09-23T15:07:00+02:00`
+
+References:
+- STA_XDC-EXP-001
+- STA_XDC-EXP-002
+
+Artifacts:
+- NONE
+
+#### Observation
+Human 能依据 100/125 MHz 接口时钟独立确定 Clock Period 与参考边沿语义；能把 ADC Clock-to-Output Min/Max 转换为正的 set_input_delay -min/-max，把 DAC Setup/Hold Requirement 转换为 set_output_delay -max 与负的 -min，并在最终复测中正确填写 input max=4.5 ns、input min=1.2 ns、output max=2.0 ns、output min=-0.5 ns。Human 在 Vivado 2018.3 / XC7A35T 小型 I/O 工程中实际运行 check_timing，观察无 I/O Delay 时 no_input_delay/no_output_delay 报告、补齐约束后的归零，以及故意删除 Output -min 后 partial_output_delay 报 HIGH；同时发现并修正 get_ports 总线对象查询未命中的问题。最终 Timing Review 中，Human 能区分 Coverage、当前 STA Model 下 Timing Pass 与真实 Constraint Truth，并正确识别 ADC datasheet max=4.5 ns 而 XDC input -max=3.0 ns 会虚增 Setup Slack、制造 False Timing Pass。最终符号解释仍有一处把 input -min 归因于内部 Capture Register Hold 的表述偏差，经 Tutor 一次少量纠正后收紧。
+
+#### Interpretation
+该表现直接支持 G2 C1、C2、C3 达到 VERIFIED：Human 已具备在明确接口假设下建立基础时钟约束、转换基本 Input/Output Delay、使用真实 Vivado check_timing 检查完整/部分约束遗漏并审查明显错误假设的能力。最终综合任务仅需 A1 级少量语义纠正，不高于 Gate Maximum A1，因此支持 STA_XDC-GATE-G2 PASSED。该 Evidence 不支撑 Generated Clock/MMCM、Virtual Clock、复杂源同步接口或系统化 timing closure 能力。
