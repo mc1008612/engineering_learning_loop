@@ -17,6 +17,12 @@ mutation: CURATED
 - I/O Delay Constraint 的作用是把 FPGA 看不到的外部世界接入内部 STA 模型：Input Delay 描述外部发送器数据相对于接口 Reference Clock Edge 到达 FPGA Input Port 的最早/最晚窗口；Output Delay 把外部接收器的 Setup/Hold Requirement 反推为 FPGA Output Port 必须满足的时序边界。
 - STA 不需要现实世界的绝对时间戳，但必须知道 Clock Edge 之间的相对位置；相同 Frequency/Period 不等于相同 Phase/Edge Relationship。
 - Constraint Coverage、当前 STA Model 下 Timing Pass 与 Constraint Truth 是三个不同层次：约束覆盖完整和 Slack 为正都不能单独证明 XDC 正确描述了真实硬件。
+- Timing exceptions describe functional timing facts; they do not repair physical timing violations.
+- Constraint Coverage, Timing Pass under the model, and Constraint Truth are separate questions.
+- High fanout is a suspect indicator, not proof of a timing bottleneck; delay remains source-to-sink and placement dependent.
+- Post-place net delay is estimated; post-route routed delay is the signoff-quality physical result.
+- Driver replication helps primarily by changing driver-to-load physical topology and clustering loads, not merely by reducing a fanout number.
+- An asynchronous origin does not make all descendant paths asynchronous: after the first synchronizer stage, same-clock paths remain real STA paths.
 
 ## Engineering Rules
 
@@ -28,6 +34,11 @@ mutation: CURATED
 - 发送器 Clock-to-Output Min/Max 可直接形成同一参考时钟下的 set_input_delay -min/-max 数据到达窗口；Input -min 通常保持为发送器给出的正的最早到达时间。
 - 外部接收器 Setup/Hold Requirement 在基础同边沿模型下对应 set_output_delay -max = Setup、set_output_delay -min = -Hold；负号是 Output Delay 坐标/建模语义，不代表物理负延迟。
 - XDC Object Query 是否真正命中预期端口是 Constraint Review 的一部分；约束数值正确但 get_ports/get_pins 未选中目标对象，等价于约束没有正确落到设计上。
+- For a true one-cycle setup violation, diagnose logic depth, route share, placement, fanout, and architecture before considering exceptions.
+- Use MCP only when protocol or microarchitecture genuinely permits later capture; pair setup/hold semantics correctly.
+- Use false path only for relationships that functionally must not be timed; audit matched objects and downstream scope.
+- Evaluate physical optimization by timing and implementation quality, not by whether fanout counts look smaller.
+- Pipeline is a legitimate architectural closure technique when added latency and control/data alignment are acceptable.
 
 ## Debug Checklist
 
@@ -36,6 +47,11 @@ mutation: CURATED
 - 对于 Post-Route 物理问题，用 Timing path 与 Schematic/Device 交叉定位后，再决定是否需要调查 fanout、placement、routing、congestion 或物理优化。
 - 基础 I/O Constraint Review 时同时核对真实接口方向、谁产生 Data、谁 Capture、Capture Reference Clock、Datasheet 的发送器输出时序或接收器 Setup/Hold、XDC 数值与对象查询，以及 check_timing 的 no_input_delay/no_output_delay/partial_input_delay/partial_output_delay。
 - 看到 Timing Summary 全绿时，继续把 Datasheet/Board、RTL/Netlist、XDC 与 Timing Report 对齐；特别检查过于乐观的 input -max 等错误是否会人为虚增 Slack。
+- Start from WNS/WHS and confirm the constraint/clock relationship being analyzed.
+- Split Data Path Delay into logic and route; inspect Logic Levels and per-element Incr values.
+- For route-dominated paths, inspect source/destination placement, fanout, sink distribution, and clock skew/CPR.
+- After any closure action, rerun implementation as required and verify with post-route timing rather than assuming improvement.
+- For CDC/false-path review, explicitly identify the asynchronous boundary, first synchronizer stage, second stage, and downstream synchronous logic.
 
 ## Common Failure Modes
 
@@ -48,6 +64,11 @@ mutation: CURATED
 - 把发送器的 Clock-to-Output Min（最早新数据出现时间）误当成接收器内部 Hold Requirement，从而错误地给 set_input_delay -min 添加负号。
 - 看到 check_timing 全零或 All user specified timing constraints are met 就宣布真实硬件时序正确；这些结果只能在各自范围内证明 Coverage 或当前模型下的约束满足。
 - 在基础 I/O 时序模型尚未稳定时过早混入 MMCM/Generated Clock 等未教学变量，会把当前验收问题变成对后续知识的隐性测试。
+- Using false path or MCP because slack is bad rather than because functionality justifies the exception.
+- Treating `report_high_fanout_nets` as a list of violations.
+- Assuming a high-fanout optimization must run even when there is no setup violation.
+- Comparing post-place estimated routing delay directly with post-route routed delay as if they were equivalent.
+- Cutting synchronizer stage-to-stage or downstream synchronous timing because the original external signal is asynchronous.
 
 ## References Worth Reusing
 
@@ -55,3 +76,7 @@ mutation: CURATED
 - AMD/Xilinx UG904 v2018.3 — Vivado Implementation。
 - AMD/Xilinx UG893 v2018.3 — Using the Vivado IDE（Device/Schematic 可视化）。
 - AMD/Xilinx UG888 v2018.1 — Design Flows Overview Tutorial（Timing Path 与 Device Routing Resources 交叉查看）。
+- Vivado 2018.3 timing reports showing forced-placement setup/hold A/B behavior.
+- Vivado 2018.3 high-fanout report and replica properties for `src_reg_reg` / `src_reg_reg_rep`.
+- Vivado 2018.3 post-place `phys_opt_design -fanout_opt` log showing `No setup violation found. Fanout Optimization was not performed.`
+- The 32-level combinational-path RTL simplification experiment as the canonical example of real closure versus timing-exception masking.

@@ -81,3 +81,24 @@ Human 能依据 100/125 MHz 接口时钟独立确定 Clock Period 与参考边�
 
 #### Interpretation
 该表现直接支持 G2 C1、C2、C3 达到 VERIFIED：Human 已具备在明确接口假设下建立基础时钟约束、转换基本 Input/Output Delay、使用真实 Vivado check_timing 检查完整/部分约束遗漏并审查明显错误假设的能力。最终综合任务仅需 A1 级少量语义纠正，不高于 Gate Maximum A1，因此支持 STA_XDC-GATE-G2 PASSED。该 Evidence 不支撑 Generated Clock/MMCM、Virtual Clock、复杂源同步接口或系统化 timing closure 能力。
+
+### STA_XDC-EXP-004 — G3 Timing Exceptions and Timing Closure Integrated Verification
+
+Schema: `evidence_entry`
+Type: `ASSESSMENT`
+Result: `PASS`
+Assistance: `A1`
+Gate: `STA_XDC-GATE-G3`
+Lesson: `STA_XDC-LSN-20260923-213152`
+
+References:
+- NONE
+
+Artifacts:
+- NONE
+
+#### Observation
+User independently distinguished false path and multicycle semantics; rejected exception-based masking of a true one-cycle violation; diagnosed a 32-level setup path and algebraically removed the serial dependency with functionally equivalent RTL, improving post-route slack from -2.500 ns to +9.158 ns and data path from 12.455 ns to 0.759 ns. User then isolated physical routing effects with forced placement: setup route delay changed from 0.380 ns to 3.370 ns and returned to 0.380 ns after removing LOC, while hold slack moved consistently with minimum-route delay. In the high-fanout experiment, user identified fanout as a diagnostic clue rather than proof, inspected an implementation-created replica (`IS_ORIG_CELL=0`, `ORIG_CELL_NAME=src_reg_reg`), and observed post-place `phys_opt_design -fanout_opt` deliberately perform zero optimization because WNS was already +0.139 ns. Final independent CDC audit correctly identified only the asynchronous input-to-first-synchronizer boundary as asynchronous and required first-to-second synchronizer plus downstream synchronous paths to remain timed; user identified an overbroad false path as a false PASS that can hide real hardware risk.
+
+#### Interpretation
+C1 verified: user understands false-path/MCP semantics, protocol preconditions, paired MCP hold behavior, and masking risk. C2 verified: user can diagnose setup/hold using slack, logic/route composition, skew/CPR, placement, fanout, and max/min routing behavior. C3 verified: user can choose and verify targeted closure actions with post-route reports rather than exceptions. S1 verified by independent rejection of overbroad CDC false-path scope. Gate G3 passes at acceptable assistance.
