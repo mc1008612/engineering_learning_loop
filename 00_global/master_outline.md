@@ -1,8 +1,8 @@
 ---
 schema: master_outline
-current_topic: STA_XDC
+current_topic: CLOCK_RESET
 current_action: TUTOR
-master_checkpoint: STA_XDC-GATE-G3
+master_checkpoint: CLOCK_RESET-GATE-G1
 ---
 
 # Master Outline

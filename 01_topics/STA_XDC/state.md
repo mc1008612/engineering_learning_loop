@@ -1,10 +1,10 @@
 ---
 schema: topic_state
 topic: STA_XDC
-status: ACTIVE
+status: COMPLETED
 current_gate: STA_XDC-GATE-G3
-master_review_required: true
-master_review_reason: TOPIC_LIFECYCLE
+master_review_required: false
+master_review_reason: NONE
 last_lesson_id: STA_XDC-LSN-20260923-213152
 ---
 

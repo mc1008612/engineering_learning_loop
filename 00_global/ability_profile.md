@@ -25,7 +25,7 @@ last_master_review: 2026-09-23
 |---|---:|---|
 | Verilog RTL / FSM | L3 | UART/FSM 等中小 RTL 可独立完成 |
 | Verilog TB / Functional Simulation | L3 | 能写 TB、做 Vivado 功能仿真 |
-| STA / XDC | L2 | 路径模型、Timing Report 阅读与基础 Clock/I-O Constraints 已验证（STA_XDC-EXP-001/002/003）；例外与 timing closure 未建立（G3），约束编写独立性待 A0 证据 |
+| STA / XDC | L3 | 约束、审查、关闭常见同步时序问题已验证（STA_XDC-EXP-001~004，G1-G3 PASSED + S1 VERIFIED）；Generated Clock/Virtual Clock/源同步接口建模与陌生设计独立性未验证 |
 | Clock / Reset | L1 | 接触多时钟；reset architecture 薄弱 |
 | CDC | L2 | 双触发器/async FIFO 可用；系统化 CDC 分析不足 |
 | AXI / IP Integration | L2 | XDMA/MIG/SmartConnect 功能仿真经历；缺硬件闭环 |
