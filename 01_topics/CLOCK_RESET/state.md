@@ -2,9 +2,9 @@
 schema: topic_state
 topic: CLOCK_RESET
 status: ACTIVE
-current_gate: CLOCK_RESET-GATE-G1
-master_review_required: true
-master_review_reason: CURRICULUM_CHECKPOINT
+current_gate: CLOCK_RESET-GATE-G2
+master_review_required: false
+master_review_reason: NONE
 last_lesson_id: CLOCK_RESET-LSN-20260925-234151
 ---
 
@@ -16,10 +16,10 @@ Objective:
 建立可独立调用的 FPGA 时钟与复位架构能力，能为真实工程设计、约束并审查时钟生成/分发与复位体系。
 
 Reason:
-当前该能力为 L1，是 baseline 最弱项之一；Generated Clock/MMCM 是 STA_XDC 的遗留 defer 项，同时是后续 CDC、LVDS 与高速数据通路学习的直接前置。
+当前该能力为 L2，是 baseline 最弱项之一；Generated Clock/MMCM 是 STA_XDC 的遗留 defer 项，同时是后续 CDC、LVDS 与高速数据通路学习的直接前置。
 
 ## Current Objective
-理解 7 系列时钟资源与 MMCM/PLL 结构，能在真实工程中正确约束 generated clock 并追踪 clock path。
+能为真实设计选择并实现正确的复位架构，并对其做约束与时序审查。
 
 ## Current Snapshot
 
@@ -27,10 +27,12 @@ Passed:
 - CLOCK_RESET-GATE-G1：时钟生成与 Generated Clock 约束——C1/C2/C3 已通过低辅助最终验收。
 
 In Progress:
-- NONE
+- CLOCK_RESET-GATE-G2：Reset Architecture——复位语义与物理机制、reset synchronizer 与 reset 树、约束与时序审查。
 
 Not Yet Verified:
-- Reset architecture 的 recovery/removal、metastability 传播与 reset synchronizer 物理安全边界尚未形成独立验收 Evidence。
+- Reset 类型与语义（含 recovery/removal、metastability 风险）尚未验收。
+- reset synchronizer 实现与 reset 树 fanout/分发尚未验收。
+- reset 结构的约束与时序审查、常见错误识别尚未验收。
 
 ## Current Blockers
 
@@ -70,4 +72,4 @@ G1 已通过并到达当前 curriculum checkpoint。交回 Master Review 决定 
 
 ## Open Questions / Deferred
 
-- 后续 CLOCK_RESET Gate 应如何承接 reset architecture，由 Master Review 决定。
+- Reset 支线（recovery/removal、metastability）已并入 G2 正式验收范围；多时钟与时钟域边界的综合 signoff 场景留待 G3，并衔接后续 CDC Topic。

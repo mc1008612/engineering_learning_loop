@@ -48,7 +48,7 @@ Mandatory Criteria 全部满足 + 至少一条当前 Gate 的 `PASS` Evidence + 
 
 ## CLOCK_RESET-GATE-G2 — Reset Architecture
 
-Status: `DRAFT`
+Status: `OPEN`
 Mandatory: `YES`
 
 ### Objective
@@ -58,7 +58,7 @@ Mandatory: `YES`
 - CLOCK_RESET-GATE-G1 `PASSED`
 
 ### Mandatory Criteria
-- C1 — 能区分同步/异步复位的优缺点与适用条件，解释 async assert / sync deassert 的语义。
+- C1 — 能区分同步/异步复位的优缺点与适用条件，解释 async assert / sync deassert 的语义以及 recovery/removal 的时序含义与 metastability 风险。
 - C2 — 能设计并实现 reset synchronizer（异步断言、同步释放），并处理 reset 树的 fanout 与分发。
 - C3 — 能对复位结构做约束与时序审查（reset 路径按 data path 还是例外处理），并识别常见错误。
 

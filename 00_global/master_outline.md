@@ -2,7 +2,7 @@
 schema: master_outline
 current_topic: CLOCK_RESET
 current_action: TUTOR
-master_checkpoint: CLOCK_RESET-GATE-G1
+master_checkpoint: CLOCK_RESET-GATE-G2
 ---
 
 # Master Outline
