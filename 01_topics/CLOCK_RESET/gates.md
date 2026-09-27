@@ -8,7 +8,7 @@ topic_completion_rule: ALL_MANDATORY_GATES_PASSED_AND_MASTER_CONFIRMED
 
 ## CLOCK_RESET-GATE-G1 — 时钟生成与 Generated Clock 约束
 
-Status: `OPEN`
+Status: `PASSED`
 Mandatory: `YES`
 
 ### Objective
@@ -37,12 +37,14 @@ Maximum: `A1`
 Mandatory Criteria 全部满足 + 至少一条当前 Gate 的 `PASS` Evidence + Assistance 不高于 Maximum，才可 `PASSED`。
 
 ### Criterion Progress
-- C1: `NOT_VERIFIED`
-- C2: `NOT_VERIFIED`
-- C3: `NOT_VERIFIED`
+
+- C1: `VERIFIED`
+- C2: `VERIFIED`
+- C3: `VERIFIED`
 
 ### Evidence References
-- NONE
+
+- CLOCK_RESET-EXP-001
 
 ## CLOCK_RESET-GATE-G2 — Reset Architecture
 
