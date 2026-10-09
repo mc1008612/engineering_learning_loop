@@ -77,12 +77,14 @@ Maximum: `A1`
 Mandatory Criteria 全部满足 + 至少一条当前 Gate 的 `PASS` Evidence + Assistance 不高于 Maximum，才可 `PASSED`。
 
 ### Criterion Progress
-- C1: `NOT_VERIFIED`
-- C2: `NOT_VERIFIED`
-- C3: `NOT_VERIFIED`
+
+- C1: `VERIFIED`
+- C2: `PARTIAL`
+- C3: `PARTIAL`
 
 ### Evidence References
-- NONE
+
+- CLOCK_RESET-EXP-002
 
 ## CLOCK_RESET-GATE-G3 — 多时钟系统与时钟域边界
 

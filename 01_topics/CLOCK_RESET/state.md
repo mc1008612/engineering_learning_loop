@@ -5,7 +5,7 @@ status: ACTIVE
 current_gate: CLOCK_RESET-GATE-G2
 master_review_required: false
 master_review_reason: NONE
-last_lesson_id: CLOCK_RESET-LSN-20260925-234151
+last_lesson_id: CLOCK_RESET-LSN-20260927-165006
 ---
 
 # CLOCK_RESET State
@@ -27,12 +27,12 @@ Passed:
 - CLOCK_RESET-GATE-G1：时钟生成与 Generated Clock 约束——C1/C2/C3 已通过低辅助最终验收。
 
 In Progress:
-- CLOCK_RESET-GATE-G2：Reset Architecture——复位语义与物理机制、reset synchronizer 与 reset 树、约束与时序审查。
+- CLOCK_RESET-GATE-G2：C1 的复位释放与亚稳态因果模型已具直接对话理解证据；C2 架构/RTL 推理有进展但缺真实实现核查；C3 静态时序/例外约束推理有进展但缺真实 timing report。
 
 Not Yet Verified:
-- Reset 类型与语义（含 recovery/removal、metastability 风险）尚未验收。
-- reset synchronizer 实现与 reset 树 fanout/分发尚未验收。
-- reset 结构的约束与时序审查、常见错误识别尚未验收。
+- G2-C2：在 Vivado 2018.3 / XC7A35T-FGG484-2 中实现并核查两级异步断言/同步释放 synchronizer，以及高 fanout reset distribution 的实际结构。
+- G2-C3：在真实 implemented design 中审查 reset 路径 P1/P2/P3、recovery/removal max/min timing、route delay、slack 与 timing exceptions，并独立识别/纠正错误约束。
+- G2 的低辅助最终综合验收及当前 Gate PASS Evidence 尚未完成。
 
 ## Current Blockers
 
@@ -44,32 +44,37 @@ Not Yet Verified:
 
 ## Last Lesson
 
-Lesson ID: `CLOCK_RESET-LSN-20260925-234151`
+Lesson ID: `CLOCK_RESET-LSN-20260927-165006`
 Status: `COMPLETE`
-Gate: `CLOCK_RESET-GATE-G1`
+Gate: `CLOCK_RESET-GATE-G2`
 
 Focus:
-完成 CLOCK_RESET-GATE-G1：建立 7 Series MMCM/PLL、BUFG/BUFR 的时钟架构模型；在 Vivado 2018.3 / XC7A35T-FGG484-2 真实工程中理解 generated clock 的自动推导与手写建模；从 timing report / clock utilization 追踪 clock path、SCD/DCD、skew、CPR 与 clock network。期间由真实时钟工程延伸讨论了 reset synchronizer、recovery/removal 与 metastability，但该支线不作为 G1 PASS 的主要依据。
+CLOCK_RESET-GATE-G2（Reset Architecture）。先闭合 C1 的异步释放/亚稳态物理机制，推进 C2 的两级复位同步器与 fanout 分发，最后进入 C3 的 STA 路径分类、false-path 范围及真实 Vivado timing review 入口。
 
 Work:
-从已有 STA 能力做迁移探测；补齐 MMCM/PLL、VCO、M/D/O、BUFG/BUFR 与 global/regional clock network；使用 Clock Wizard 建立 100 MHz -> 200 MHz / 50 MHz 最小工程并完成仿真、implementation；观察 report_clocks、report_clock_utilization 和 report_timing；验证 auto-derived generated clocks，并实际手写 create_generated_clock；分析 MMCM -> BUFG -> global clock routing -> FF/C、SCD/DCD、clock skew 与 CPR。课程后段回到 G1，以 A0/A1 低辅助方式完成 C1/C2/C3 独立复测。
+Human 从交叉耦合反相器的差分电压与指数再生出发，纠正了把亚稳态归因于“reset wire 被采样”的模型，理解了异步控制释放如何把 FF 内部存储节点推近 metastable point，以及 FF1/FF2 如何隔离危险第一拍。以高有效 arst、两级 async-preset reset synchronizer 为例，对比了第一/第二级是否具 async preset 的 RTL 语义，并纠正 ASYNC_REG 不是“声明异步复位 FF”的误解。讨论了同一域内复制独立 synchronizer、工具物理驱动复制与 balanced registered reset tree 的结构差别，并由 Human 推导 local reset 的释放时刻。
+
+进入 C3 后沿 P1=raw arst→FF/PRE、P2=FF1/Q→FF2/D、P3=FF2/Q→业务 FF/CLR 分析：P1 为需精确限制的 timing exception 候选；P2 必须做 setup/hold；P3 必须保留 recovery/removal。Human 曾误将 P2 归为 recovery/removal、又误判 -from FF2/Q 会遮蔽 P2，经讨论已纠正。课程已给出真实 Vivado 2018.3 工程查询和 max/min report_timing 的下一步，但未获得这些实际输出。
 
 Outcome:
-G1 mandatory criteria C1/C2/C3 均达到 VERIFIED。最终复测中，Human 能区分 MMCM 时钟管理与 BUFG/BUFR 分发角色，解释 M/D/O 与输出关系；能判断标准 MMCME2_ADV 输出通常由 Vivado 自动派生 generated clock、重复手写可能覆盖自动模型，并指出普通用户逻辑产生/修改时钟等需要显式建模的场景；能解释 clock delay 与 skew 的区别、识别 global clock network，并在 A1 最终题中正确计算 CPR 对公共时钟路径悲观的修正。Gate 达到 PASS 条件。
+C1 的因果模型已有 Human 自主推导与迁移表现，可记录 VERIFIED；C2 的架构/RTL 推理已经建立，但未完成实际 implemented design 验证，保留 PARTIAL；C3 的路径类型、exception scope 已有阶段性理解，仍未完成真实 timing report 与低辅助独立审查，保留 PARTIAL。没有证据表明本次已在 Vivado 中完成 implementation / timing closure；不宣布 Gate PASS。
 
 Gate Progress:
-CLOCK_RESET-GATE-G1: PASSED. C1=VERIFIED, C2=VERIFIED, C3=VERIFIED.
+CLOCK_RESET-GATE-G1：此前 PASSED，不修改。
+CLOCK_RESET-GATE-G2：OPEN；C1=VERIFIED，C2=PARTIAL，C3=PARTIAL。Gate Maximum Assistance=A1；本 Lesson 尚无满足最终 Gate PASS 条件的低辅助综合验收。
 
 Evidence:
-CLOCK_RESET-EXP-001 — PASS / ASSESSMENT / A1.
+CLOCK_RESET-EXP-002 — LEARNING / PARTIAL / A2；记录实际对话表现与尚未验证的工程边界，不作为 Gate PASS Evidence。
 
 Suggested Local Next:
-G1 已通过并到达当前 curriculum checkpoint。交回 Master Review 决定 CLOCK_RESET 的下一 Gate / Lesson。后续若继续 reset architecture，应从本课尚未完全闭环的 recovery/removal 与 metastability 物理机制继续，而不要重新讲已通过的 BUFG/MMCM/generated-clock 基础。
+下次直接承接 G2-C3，不重复 C1 选择题或 primitive 猜测。Human 在 Vivado 2018.3 / XC7A35T-FGG484-2 对最小两级 async-preset synchronizer + async-clear 8-bit counter 实施 Implement Design；提交 (1) rst_pipe/counter 实际 cell 查询，(2) counter CLR pin 查询，(3) FF2/Q→counter[*]/CLR 的 max/recovery 与 min/removal 完整 path summary + data path，并核对 timing exception 是否遮蔽 P3。先以真实结果补足 C3 和 C2 的 implementation Evidence，之后再做不泄露答案、Assistance≤A1 的 Gate 综合复测。依赖式 reset sequencing/reset controller 暂缓到 C3 闭合后。
 
 ## Evidence Anchors
 
 - CLOCK_RESET-EXP-001
+- CLOCK_RESET-EXP-002
 
 ## Open Questions / Deferred
 
-- Reset 支线（recovery/removal、metastability）已并入 G2 正式验收范围；多时钟与时钟域边界的综合 signoff 场景留待 G3，并衔接后续 CDC Topic。
+- C3 实际实现中 FF2/Q → counter[*]/CLR 的 recovery/removal 报告如何显示，是否存在 exception 遮蔽或约束对象选空的情况？
+- 待 C3 闭合后再处理 reset sequencing / reset controller：locked、init_done、ready 等依赖的有序释放和故障后的重新断言。
