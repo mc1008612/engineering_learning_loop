@@ -1,10 +1,10 @@
 ---
 schema: topic_state
 topic: CLOCK_RESET
-status: ACTIVE
+status: PAUSED
 current_gate: CLOCK_RESET-GATE-G2
-master_review_required: true
-master_review_reason: OTHER
+master_review_required: false
+master_review_reason: NONE
 last_lesson_id: CLOCK_RESET-LSN-20261013-140247
 ---
 
@@ -16,7 +16,7 @@ Objective:
 建立可独立调用的 FPGA 时钟与复位架构能力，能为真实工程设计、约束并审查时钟生成/分发与复位体系。
 
 Reason:
-当前该能力为 L2，是 baseline 最弱项之一；Generated Clock/MMCM 是 STA_XDC 的遗留 defer 项，同时是后续 CDC、LVDS 与高速数据通路学习的直接前置。
+当前该能力为 L2，是 baseline 最弱项之一；Generated Clock/MMCM 是 STA_XDC 的遗留 defer 项，同时是后续 CDC、LVDS 与高速数据通路学习的直接前置。G2 的 PASS 不是任何 Host–Device 项目的前置条件：只在真实引入复位/多时钟风险时安排补验。
 
 ## Current Objective
 能为真实设计选择并实现正确的复位架构，并对其做约束与时序审查。
@@ -76,5 +76,7 @@ Suggested Local Next:
 
 ## Open Questions / Deferred
 
-- 请 Master 审查长期 Outline：是否将陌生 RTL 阅读、结构推断、优先级/并发协议审查、性质驱动验证作为贯穿多个 Topic 的明确能力目标。
-- Human 请求停止低价值的脑内事件穷举练习，并希望当前 G2 尽快结束；Master 应决定剩余 G2 低辅助验收如何精简或安排后续 Topic，而不将 OPEN 伪记为 PASS。
+- 暂停原因（Master, 2026-10-13）：为避免局部 Gate 反复占用学习精力，先完成不依赖复杂 reset 架构的 Host–Device 低速闭环；Topic 置 `PAUSED`、G2 保持 `OPEN`。EXP-003/004 原样保留，不替代 ASYNC_REG/P1/例外覆盖核查。
+- 恢复条件：真实工程引入复位架构或多时钟风险时，恢复 G2 缺口审查。**G2 的 PASS 不作为任何 Host–Device 项目的前置条件。**
+- 已解决（原 Open Question 结论）："RTL 阅读 / 结构推断 / 优先级与并发协议审查 / 性质驱动验证"已作为贯穿性能力写入 `00_global/master_outline.md` 的 `J. Cross-cutting`，不新增刷题 Gate。
+- 已解决（原 Open Question 结论）：G2 剩余低辅助验收按上述方式 Deferred，保持 `OPEN` 如实记录、未伪记为 PASS；教学方式诉求（停止/跳过权、不伪造证据、Tutor 不代替关键工程判断）已写入 `02_specs/TEACHING_CONTRACT.md`。

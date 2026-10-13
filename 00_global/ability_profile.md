@@ -2,7 +2,7 @@
 schema: ability_profile
 scale: L0-L6
 source: initial_self_report_baseline
-last_master_review: 2026-09-27
+last_master_review: 2026-10-13
 ---
 
 # Ability Profile
@@ -26,7 +26,7 @@ last_master_review: 2026-09-27
 | Verilog RTL / FSM | L3 | UART/FSM 等中小 RTL 可独立完成 |
 | Verilog TB / Functional Simulation | L3 | 能写 TB、做 Vivado 功能仿真 |
 | STA / XDC | L3 | 约束、审查、关闭常见同步时序问题已验证（STA_XDC-EXP-001~004，G1-G3 PASSED + S1 VERIFIED）；Generated Clock/Virtual Clock/源同步接口建模与陌生设计独立性未验证 |
-| Clock / Reset | L2 | 时钟生成/分发/约束与 clock path 追踪已验证（CLOCK_RESET-EXP-001）；reset architecture 仍待 G2 验证 |
+| Clock / Reset | L2 | 时钟生成/分发/约束与 clock path 追踪已验证（CLOCK_RESET-EXP-001）；reset G2 P2/P3 已有实现报告（CLOCK_RESET-EXP-003, A2），ASYNC_REG/P1/独立收尾尚未验证；Topic 暂停不代表通过 |
 | CDC | L2 | 双触发器/async FIFO 可用；系统化 CDC 分析不足 |
 | AXI / IP Integration | L2 | XDMA/MIG/SmartConnect 功能仿真经历；缺硬件闭环 |
 | FPGA Debug / ILA | L2 | 用过 ILA；独立配置/debug strategy 不稳定 |
@@ -35,7 +35,7 @@ last_master_review: 2026-09-27
 | Python Engineering | L3 | ROS、threading/asyncio/queue 有实践；完整设备 GUI 不足 |
 | C / Build Tooling | L2 | C、Make/CMake/Git 基础可用；无大型系统级 C 工程 |
 | LabVIEW Architecture | L2 | Event/Queue/State/SubVI 基础；无真设备闭环 |
-| Host–Device Communication | L0 | 尚未完成真实设备协议/连续流闭环 |
+| Host–Device Communication | L0 | 尚未完成真实设备协议/连续流闭环；下一阶段以 HOST_DEVICE-GATE-G1 开始积累 Host 协议与解析 Evidence，当前等级不变 |
 | Measurement / DSP | L1 | 学过但碎片化，需要重建 FFT/ADC 指标体系 |
 | Linux Driver / DMA | L0 | 尚无真实实践 |
 | C++ / Qt | L0 | 尚未系统学习 |
