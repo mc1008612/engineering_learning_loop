@@ -17,6 +17,9 @@ mutation: CURATED
 - 高有效 async preset 的两级 reset synchronizer：raw arst 同时到 FF1/FF2 的 PRE，FF1/D=0，FF2/D=FF1/Q，最终同步释放 reset 取 FF2/Q；两级 FF 均可具有异步控制引脚。
 - 异步释放撞到首个 clock edge 时，FF1 可能亚稳，但 FF2 此拍正常从旧 Q1=1 保持 reset；后级采样 FF1/Q 的风险属于 D 输入的亚稳态传播，并非把 P2 改判成 recovery/removal。
 - 普通 STA 按时序路径的 endpoint pin 选择检查：D 端做 setup/hold，PRE/CLR 等异步控制端释放做 recovery/removal；STA 不模拟 FF 亚稳造成的随机延长 clock-to-Q。
+- 阅读时序 RTL 不必人工枚举所有事件顺序：先识别各状态寄存器的时钟/异步控制端，再提取每个寄存器的 next-state 条件和模块协议不变量。
+- 同一优先级 if/else-if 链可化为互斥的有效分支条件；不同 always 中的非阻塞赋值在同一时钟沿读取旧状态并并行提交更新。
+- RTL 的 reg/always 不等于固定数量的 FF；标准模板仅推导候选结构，MUX/CE 的实际映射仍应以 Vivado 网表为准。
 
 ## Engineering Rules
 
@@ -26,6 +29,9 @@ mutation: CURATED
 - 同一时钟域内、具有启动依赖的模块应共享可信的 reset-release event；不要仅为 fanout 任意复制独立 raw-async synchronizer。工具 driver replication 不等于人工增加一级 registered reset tree。
 - 若为分发而增加 local reset register，需要审查分支是否平衡、整体新增 latency、以及 local reset 是否仍满足必需的 async assertion 语义。
 - 精确区分 P1=raw arst→synchronizer PRE（窄范围 exception 候选），P2=FF1/Q→FF2/D（保留 setup/hold），P3=FF2/Q→业务 FF/CLR（保留 recovery/removal）。
+- 两级复位同步器的有效性应检查异步请求能否同时控制所需各级 PRE，以及释放是否经 FF1/Q -> FF2/D 的同步路径；只核对 FF2 复位输出不够。
+- 每次使用 report_timing 前应明确要验证的结构与 endpoint pin；No timing paths found 时先排查目标 CLR/PRE 是否实际存在，不能等同于 MET。
+- 带同步 R 的 FDRE 中 R 的优先级不能用 CE=0 解释为停钟；CE 与真正的 clock gating 不同。
 
 ## Debug Checklist
 
@@ -33,6 +39,8 @@ mutation: CURATED
 - 分析 clock skew 时先区分 SCD、DCD、CPR，再检查公共路径分叉后的非公共 clock path 差异。
 - C3 下一步在 Vivado 2018.3 的 implemented design 查询实际 rst_pipe 与 counter FF cell、counter 的 CLR pin；然后分别用 report_timing 的 max/min 检查 P3，核对 path group、route delay、slack 与 timing exception 是否生效。
 - XDC selector 应核对实际匹配对象；可先 get_cells -hier 再以 get_pins -of_objects 与 REF_PIN_NAME 查特定 pin，不能仅凭预想 RTL 层次名推断约束命中。
+- 复位路径审查按 P1(raw async->PRE)、P2(FF1/Q->FF2/D)、P3(FF2/Q->业务 CLR) 分开；P2 查 Setup/Hold，P3 查 Recovery/Removal，并以真实路径、Slack、例外和被筛选对象佐证。
+- 对复杂并行 RTL，先提取各事件和优先级并列出各寄存器 next-state 关系；发现性质不一致后构造最小反例，再用 self-checking TB/断言做工具化覆盖。
 
 ## Common Failure Modes
 
@@ -43,8 +51,12 @@ mutation: CURATED
 - 把所有涉及亚稳态的路径都误称 recovery/removal：FF1/Q→FF2/D 仍然是 setup/hold；raw arst→FF2/PRE 才属于 async-control release 检查。
 - 使用无终点约束的 set_false_path -from FF2/Q，会遮蔽从 FF2/Q 发出的 P3 reset distribution 检查；不会沿网表逆向遮蔽 FF1/Q→FF2/D。
 - 将普通 RTL 功能仿真 PASS 当作复位释放亚稳态安全性证据，或把已讨论过的 reset architecture 当成已经完成 Vivado timing closure。
+- 把 Tutor 给的 Tcl 查询执行成功、或 Timing Report 的 MET，当作 Human 已通过低辅助工程判断验收。
+- 把不同 always 块误当作 Python 多线程的随机调度，或把 else-if 后继分支当作无条件独立触发。
+- 只让复位同步器的某一级异步置位，却认为任何失锁后都必然保留完整的两级释放延迟。
 
 ## References Worth Reusing
 
 - Vivado 2018.3：report_clocks、report_clock_utilization、report_timing 可联合用于 generated clock、clock primitive/network 与 SCD/DCD/skew/CPR 的工程核查。
 - Vivado 2018.3 / 7 Series：UG901（RTL inference / ASYNC_REG）、UG953（FDPE/FDCE primitive）、UG903/UG906（XDC、setup/hold 与 recovery/removal timing review）、XPM_CDC_ASYNC_RST。
+- Vivado 2018.3：UG901（时序 always inference、ASYNC_REG）、UG953（7 Series FDCE/FDPE/FDRE/FDSE）、UG903/UG906（reset exception、Setup/Hold 与 Recovery/Removal 报告）。

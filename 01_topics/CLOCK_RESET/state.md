@@ -3,9 +3,9 @@ schema: topic_state
 topic: CLOCK_RESET
 status: ACTIVE
 current_gate: CLOCK_RESET-GATE-G2
-master_review_required: false
-master_review_reason: NONE
-last_lesson_id: CLOCK_RESET-LSN-20260927-165006
+master_review_required: true
+master_review_reason: OTHER
+last_lesson_id: CLOCK_RESET-LSN-20261013-140247
 ---
 
 # CLOCK_RESET State
@@ -27,12 +27,13 @@ Passed:
 - CLOCK_RESET-GATE-G1：时钟生成与 Generated Clock 约束——C1/C2/C3 已通过低辅助最终验收。
 
 In Progress:
-- CLOCK_RESET-GATE-G2：C1 的复位释放与亚稳态因果模型已具直接对话理解证据；C2 架构/RTL 推理有进展但缺真实实现核查；C3 静态时序/例外约束推理有进展但缺真实 timing report。
+- CLOCK_RESET-GATE-G2 仍 OPEN：C1=VERIFIED；C2/C3=PARTIAL。真实 Vivado P2/P3 实现与时序证据已取得，但最终低辅助综合验收尚未完成。
 
 Not Yet Verified:
-- G2-C2：在 Vivado 2018.3 / XC7A35T-FGG484-2 中实现并核查两级异步断言/同步释放 synchronizer，以及高 fanout reset distribution 的实际结构。
-- G2-C3：在真实 implemented design 中审查 reset 路径 P1/P2/P3、recovery/removal max/min timing、route delay、slack 与 timing exceptions，并独立识别/纠正错误约束。
-- G2 的低辅助最终综合验收及当前 Gate PASS Evidence 尚未完成。
+- G2-C2：两级 FDPE 的 PRE/连接及异步断言结构已有间接实现证据，仍缺最终实现的 ASYNC_REG 属性读回、完整 reset 请求/分发结构核对和扩展扇出情形的独立取舍证据。
+- G2-C3：P2 Setup/Hold、P3 Recovery/Removal 实际报告均 MET；P1 输入复位路径/时序例外范围与约束覆盖尚未完成完整低辅助审查；早期 exceptions 报告不代表最终改版的独立审查。
+- G2：尚无覆盖全部 Mandatory Criteria 且 Assistance<=A1 的当前 Gate PASS Evidence，不得机械标为 PASSED。
+- G2-S1：能发现部分复位/控制缺陷，但陌生多寄存器并发设计的低辅助审查稳定性未证实。
 
 ## Current Blockers
 
@@ -44,37 +45,36 @@ Not Yet Verified:
 
 ## Last Lesson
 
-Lesson ID: `CLOCK_RESET-LSN-20260927-165006`
+Lesson ID: `CLOCK_RESET-LSN-20261013-140247`
 Status: `COMPLETE`
 Gate: `CLOCK_RESET-GATE-G2`
 
 Focus:
-CLOCK_RESET-GATE-G2（Reset Architecture）。先闭合 C1 的异步释放/亚稳态物理机制，推进 C2 的两级复位同步器与 fanout 分发，最后进入 C3 的 STA 路径分类、false-path 范围及真实 Vivado timing review 入口。
+CLOCK_RESET-GATE-G2 的真实复位同步器实现、P2/P3 物理时序核查；并根据 Human 反馈转向 RTL 阅读、硬件结构识别与并发控制缺陷 Review。
 
 Work:
-Human 从交叉耦合反相器的差分电压与指数再生出发，纠正了把亚稳态归因于“reset wire 被采样”的模型，理解了异步控制释放如何把 FF 内部存储节点推近 metastable point，以及 FF1/FF2 如何隔离危险第一拍。以高有效 arst、两级 async-preset reset synchronizer 为例，对比了第一/第二级是否具 async preset 的 RTL 语义，并纠正 ASYNC_REG 不是“声明异步复位 FF”的误解。讨论了同一域内复制独立 synchronizer、工具物理驱动复制与 balanced registered reset tree 的结构差别，并由 Human 推导 local reset 的释放时刻。
-
-进入 C3 后沿 P1=raw arst→FF/PRE、P2=FF1/Q→FF2/D、P3=FF2/Q→业务 FF/CLR 分析：P1 为需精确限制的 timing exception 候选；P2 必须做 setup/hold；P3 必须保留 recovery/removal。Human 曾误将 P2 归为 recovery/removal、又误判 -from FF2/Q 会遮蔽 P2，经讨论已纠正。课程已给出真实 Vivado 2018.3 工程查询和 max/min report_timing 的下一步，但未获得这些实际输出。
+Human Review 了既有 200/50 MHz 复位 RTL，指出敏感事件与复位判断不一致的问题；在 Tutor 明确指导下修改同步器与 Counter 并完成 Vivado 2018.3 Implementation。首轮 Counter 为 FDRE，异步路径未出现；修正后确认 16 个 FDCE/CLR。实际报告核对了 FF1→FF2 的 Setup/Hold 与 FF2→业务 FF/CLR 的 Recovery/Removal，所有已列路径 MET。人机交互式 RTL Review 覆盖 FF 控制端、en/tick、burst_ctrl 的多 always 并发缺陷，但并发审查仍有误报与遗漏。Human 多次反馈重复 Tcl/看 Slack、低难度问答与人工逐拍猜测没有带来足够学习价值，明确希望改进长期 Outline。本轮结尾 Human 要求停止 RTL 练习、Handoff，并希望 G2 Close。
 
 Outcome:
-C1 的因果模型已有 Human 自主推导与迁移表现，可记录 VERIFIED；C2 的架构/RTL 推理已经建立，但未完成实际 implemented design 验证，保留 PARTIAL；C3 的路径类型、exception scope 已有阶段性理解，仍未完成真实 timing report 与低辅助独立审查，保留 PARTIAL。没有证据表明本次已在 Vivado 中完成 implementation / timing closure；不宣布 Gate PASS。
+工程层面 P2/P3 已取得真实、正 Slack 的 STA 证据（P2 Setup：200 MHz +3.960 ns / 50 MHz +18.839 ns；Hold：+0.375 / +0.434 ns。P3 Recovery：+3.815 / +18.641 ns；Removal：+0.345 / +0.413 ns。）。不把 Tutor 指导下的 MET、结构映射与零散 Review 答题冒充 G2 最终 A0/A1 综合 PASS；同步器 ASYNC_REG 读回、P1/约束例外最终审查及规模化 reset 分发判断仍不充分。Lesson 结课 COMPLETE，但当前 Gate 维持 OPEN。Master Review 以 OTHER 路由，请审查教学结构与后续节奏。
 
 Gate Progress:
-CLOCK_RESET-GATE-G1：此前 PASSED，不修改。
-CLOCK_RESET-GATE-G2：OPEN；C1=VERIFIED，C2=PARTIAL，C3=PARTIAL。Gate Maximum Assistance=A1；本 Lesson 尚无满足最终 Gate PASS 条件的低辅助综合验收。
+CLOCK_RESET-GATE-G1 维持 PASSED；CLOCK_RESET-GATE-G2 保持 OPEN，C1=VERIFIED，C2=PARTIAL，C3=PARTIAL，S1=PARTIAL（Stretch）。未产出符合全部 Mandatory Criteria 的 Gate PASS Evidence，因此不能按协议请求 PASSED。
 
 Evidence:
-CLOCK_RESET-EXP-002 — LEARNING / PARTIAL / A2；记录实际对话表现与尚未验证的工程边界，不作为 Gate PASS Evidence。
+本次追加 CLOCK_RESET-EXP-003（真实 Vivado P2/P3 工程证据，DEBUG/PARTIAL/A2）和 CLOCK_RESET-EXP-004（RTL 阅读与并发 Review 的独立表现，ASSESSMENT/PARTIAL/A0）。
 
 Suggested Local Next:
-下次直接承接 G2-C3，不重复 C1 选择题或 primitive 猜测。Human 在 Vivado 2018.3 / XC7A35T-FGG484-2 对最小两级 async-preset synchronizer + async-clear 8-bit counter 实施 Implement Design；提交 (1) rst_pipe/counter 实际 cell 查询，(2) counter CLR pin 查询，(3) FF2/Q→counter[*]/CLR 的 max/recovery 与 min/removal 完整 path summary + data path，并核对 timing exception 是否遮蔽 P3。先以真实结果补足 C3 和 C2 的 implementation Evidence，之后再做不泄露答案、Assistance≤A1 的 Gate 综合复测。依赖式 reset sequencing/reset controller 暂缓到 C3 闭合后。
+不重复运行已经 MET 的 P2/P3，也不立即让 Human 做更多“鬼脑”穷举。Master 优先审查 Outline：将“读陌生 RTL -> 提取硬件结构/下一状态/协议不变量 -> 工具化验证”纳入长期跨 Topic 能力；为 G2 剩余属性/P1/例外与最终 A1 验收设计一次聚焦、低负担的真实工程审查，或确定何时恢复 G2。Human 要求尽快关闭 G2，但不得在缺少 Gate PASS Evidence 时虚构通过，也不由 Tutor 自行改写 Repo 或 Ability Profile。
 
 ## Evidence Anchors
 
 - CLOCK_RESET-EXP-001
 - CLOCK_RESET-EXP-002
+- CLOCK_RESET-EXP-003
+- CLOCK_RESET-EXP-004
 
 ## Open Questions / Deferred
 
-- C3 实际实现中 FF2/Q → counter[*]/CLR 的 recovery/removal 报告如何显示，是否存在 exception 遮蔽或约束对象选空的情况？
-- 待 C3 闭合后再处理 reset sequencing / reset controller：locked、init_done、ready 等依赖的有序释放和故障后的重新断言。
+- 请 Master 审查长期 Outline：是否将陌生 RTL 阅读、结构推断、优先级/并发协议审查、性质驱动验证作为贯穿多个 Topic 的明确能力目标。
+- Human 请求停止低价值的脑内事件穷举练习，并希望当前 G2 尽快结束；Master 应决定剩余 G2 低辅助验收如何精简或安排后续 Topic，而不将 OPEN 伪记为 PASS。
