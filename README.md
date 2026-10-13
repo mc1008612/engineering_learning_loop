@@ -65,7 +65,7 @@ Codex 会收取并 validate，然后给你 preview。你主要检查 Tutor 对�
 
 ## 项目驱动学习也使用相同的能力地图
 
-你可以让 Master 把 FPGA→Host 最小闭环拆成项目里程碑，再由现有 Topic 的 Gate 验收：每堂课仍输出 Handoff、Evidence，达到 Gate PASS 才进入 Master Review 评估 Ability Level；不会因为报告 `MET` 就自动升级。未完成的旧 Topic 可以 `PAUSED`，Gate 仍 `OPEN`。
+你可以让 Master 把 FPGA→Host 最小闭环拆成项目里程碑，再由现有 Topic 的 Gate 验收：每堂课仍输出 Handoff、Evidence，Gate PASS 或需要能力复核的 Review signal 可进入 Master Review 评估 Ability Level；不会因为报告 `MET` 就自动升级。未完成的旧 Topic 可以 `PAUSED`，Gate 仍 `OPEN`。
 
 这不是第二套项目状态机：进度的事实来源仍是 `master_outline / 01_topics / ability_profile`。变更路线仍需先审批 Master Plan，再审核 diff，最后独立批准 commit。详见 `02_specs/PROJECT_GATE_WORKFLOW.md`。
 

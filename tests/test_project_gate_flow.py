@@ -256,6 +256,30 @@ Suggested Local Next:
         self.assertIn('REPO AUDIT: PASS',self.run_tool('tools/audit.py','--route'))
         self.assertIn('CURRENT_STATE: PENDING_LEARNING_CHANGES',self.run_tool('tools/learning.py','status'))
 
+    def test_ability_master_review_can_happen_before_gate_pass(self):
+        # Semantics still require true Human evidence; this only checks routing mechanics.
+        self.replace_once('01_topics/PROJECT_DEMO/state.md',
+                          'master_review_required: false','master_review_required: true')
+        self.replace_once('01_topics/PROJECT_DEMO/state.md',
+                          'master_review_reason: NONE','master_review_reason: POSSIBLE_LEVEL_CHANGE')
+        before=self.read('00_global/ability_profile.md')
+        out=self.run_tool('tools/audit.py','--route')
+        self.assertIn('ROUTE:\nMASTER_REVIEW',out)
+        self.assertEqual(before,self.read('00_global/ability_profile.md'))
+        self.assertIn('Status: `OPEN`',self.read('01_topics/PROJECT_DEMO/gates.md'))
+        # A hypothetical Human-approved Master mutation is mechanically possible
+        # even while the owning Gate remains OPEN. This is NOT a user level update.
+        self.replace_once('00_global/ability_profile.md',
+                          'Host–Device Communication | L0',
+                          'Host–Device Communication | L1')
+        self.replace_once('01_topics/PROJECT_DEMO/state.md',
+                          'master_review_required: true','master_review_required: false')
+        self.replace_once('01_topics/PROJECT_DEMO/state.md',
+                          'master_review_reason: POSSIBLE_LEVEL_CHANGE','master_review_reason: NONE')
+        self.assertIn('REPO AUDIT: PASS',self.run_tool('tools/audit.py','--route'))
+        self.assertIn('ROUTE:\nTUTOR',self.run_tool('tools/audit.py','--route'))
+        self.assertIn('Status: `OPEN`',self.read('01_topics/PROJECT_DEMO/gates.md'))
+
     def test_no_hidden_second_current_focus(self):
         self.write('00_global/master_outline.md',self.read('00_global/master_outline.md')+'\n## Current Learning Focus\nDuplicate\n')
         out=self.run_tool('tools/audit.py','--route',expect=1)

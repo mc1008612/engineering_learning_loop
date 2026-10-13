@@ -38,6 +38,7 @@ Ability 表示长期、粗粒度的独立能力，不是 Gate 完成数量的函
 |---|---|
 | 项目实施中新增一次有效实验但能力仍受明显引导 | 记录 `DEBUG/PARTIAL/A2` 等 Evidence；Ability 可以不变 |
 | 低辅助独立完成某 Gate 的全部 Mandatory Criteria | Tutor 提供 PASS Evidence；按 Gate 路由触发 Master Review |
+| Gate 仍 OPEN，但出现新的可迁移独立证据 | Tutor 可设置 `POSSIBLE_LEVEL_CHANGE` 触发 Master Review；仅 Master/Human 有权调整 Ability |
 | 结果明显可迁移到多个能力项，或含陌生变式诊断 | Master 综合 Evidence 后提出受影响 Ability Level 的**候选变更**，逐项给理由 |
 | 没有新独立证据 / 仅实现通过 | 不自动升级等级；可更新 Baseline note，但仍须 Master Plan 获批 |
 | 旧 Gate 遗留缺口，项目暂时不依赖 | Gate 保持 `OPEN`、Topic `PAUSED`；当确实用到该能力时恢复独立验收 |
