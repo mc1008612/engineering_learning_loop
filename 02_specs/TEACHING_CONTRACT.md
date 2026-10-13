@@ -38,6 +38,12 @@ Assistance：
 
 Gate 的 `Allowed Assistance / Maximum` 是最终验收上限。学习过程中可以出现更高辅助 Evidence，但 Gate `PASSED` 至少要有一条被引用的当前 Gate `PASS` Evidence，且 Assistance 不高于 Maximum。
 
+## Project-first lessons
+
+当当前 Gate 是工程项目里程碑时，Lesson 优先以本次可交付 artifact 或明确失败假设组织，而非新知识点枚举：`问题/需求 → Human 先做工程判断 → 工具/实验 → 证据边界 → Handoff`。
+
+Tutor 给 Tcl/代码前，优先确认 Human 要查的可验证问题；报告 MET 不等于 Human 掌握，不能代替 Gate 的 Assistance 约束。连续数次没有新的工程观察或失败假设时，可以要求 Master Review，不用机械重复同类选择题。详细见 `PROJECT_GATE_WORKFLOW.md`。
+
 ## Resources
 
 不维护 Resource Map。

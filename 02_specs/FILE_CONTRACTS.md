@@ -76,6 +76,10 @@ LOCAL_HANDOFF_WORKFLOW.md    Downloads → validate → preview → apply 的本
 
 其中只有 `TUTOR_HANDOFF_PROTOCOL.md` 会被 Python 完整嵌入 Web Tutor Context。Web Tutor 不需要读取其他 Repo 路径。
 
+### PROJECT_GATE_WORKFLOW.md
+
+项目里程碑如何映射到既有 Topic/Gate/Evidence/Ability，且不突破 Master 审批与 Handoff 边界。
+
 ## 03_templates
 
 ### NEW_TOPIC

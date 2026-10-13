@@ -55,6 +55,12 @@ Topic / Gate 变化
 
 没有变化的字段写“无”。
 
+## Project-first planning
+
+Human 要求改为项目驱动路线时，Master 仍使用相同固定 `MASTER PLAN`，只是要在 `规划决策` / `Topic / Gate 变化` 内明确系统里程碑的唯一 owner Gate、前置依赖、交付证据与 Ability 候选影响。
+
+不要创建与 Gate 并行的 PASS 状态；不自动提升 `ability_profile`。旧 Topic 可 `PAUSED`、Gate 保留 `OPEN`，但新里程碑不得假装已经满足依赖。操作细节见 `PROJECT_GATE_WORKFLOW.md`。本扩展不削弱 **Read-only Review → Human Plan approval → diff review → Human commit approval**。
+
 ## Human Revision
 
 Human 可以拒绝或调整计划，例如：

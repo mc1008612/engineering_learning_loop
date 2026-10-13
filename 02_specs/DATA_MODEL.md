@@ -8,6 +8,10 @@ Status：`ACTIVE | PAUSED | COMPLETED`。
 
 Machine Topic slug 同时用于 `01_topics/<slug>/`、`master_outline.current_topic` 和 Lesson/Gate/Evidence ID 前缀，只允许 ASCII 字母、数字、`_`、`-`。Human-facing 名称可以使用 `/`、空格等自然写法，但不能直接作为 path/ID。
 
+## Project-first mapping
+
+系统项目是若干现有 Topic/Gate 的课程编排视图；每个里程碑指定一个 owner Gate。项目进度由该 Gate 的 `Criterion Progress`、Evidence 与 Git 事实表达，**不新增第二套 Project Status 或 Ability 自动评分**。详情见 `PROJECT_GATE_WORKFLOW.md`。
+
 ## Gate
 
 Tutor 的详细终端验收合同。

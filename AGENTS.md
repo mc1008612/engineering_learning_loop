@@ -124,6 +124,10 @@ git diff
 
 新 learning files 为 `??` 时，普通 `git diff` 看不到正文；必须额外完整展示后再请求 Human commit approval。
 
+## 4.5 项目里程碑兼容方式
+
+Human 想通过 FPGA→Host 等系统项目推进能力地图时，使用 `02_specs/PROJECT_GATE_WORKFLOW.md` 的“项目里程碑 → 唯一 owner Topic/Gate → Handoff Evidence → Master Ability Review”映射；不要另建一套自动 Level 或伪造 PASS。路线本身仍由 Human 批准后的 Master Plan 决定；真实学习事务先查 status，若存在 `PENDING_LEARNING_CHANGES` 不能跳过。
+
 ## 5. Tutor Lesson transaction
 
 只有 `READY_FOR_TUTOR` 且 Human 明确开课时才运行：
