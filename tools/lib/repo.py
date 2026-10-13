@@ -482,6 +482,7 @@ def audit_repository(check_git_append_only: bool = True) -> AuditResult:
         "02_specs/LOCAL_HANDOFF_WORKFLOW.md",
         "02_specs/MASTER_REVIEW_PROTOCOL.md",
         "02_specs/FILE_CONTRACTS.md",
+        "02_specs/PROJECT_GATE_WORKFLOW.md",
         "03_templates/NEW_TOPIC/state.md",
         "03_templates/NEW_TOPIC/gates.md",
         "03_templates/NEW_TOPIC/evidence.md",

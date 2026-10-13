@@ -19,13 +19,14 @@
 1. 定义 *North Star*、Demo Profile 与 Target Profile。硬件/带宽参数不明时写 `TBD`，不得声称可用。
 2. 在 Master Outline 列出稳定的交付里程碑、**owner Topic/Gate**、前置依赖与候选影响的能力项；不在此登记每堂课的实时进展。
 3. 为当前里程碑建立或选择一个 Topic，并以 `03_templates/NEW_TOPIC/` 建立四文件。Gate criteria 用交付物/诊断行为/证据边界表达，而非纯术语熟练度。
-4. 同时只允许一个 `current_topic` + `current_gate` 进入 Tutor 路由；未完成的旧 Gate 可以仍 `OPEN`，Topic 设置 `PAUSED` 并记录恢复条件，绝不伪装成 `PASSED`。
+4. 同时只允许一个 `current_topic` + `current_gate` 进入 Tutor 路由；未完成的旧 Gate 可以仍 `OPEN`，Topic 设置 `PAUSED` 并记录恢复条件，绝不伪装成 `PASSED`。恢复条件应绑定真实工程风险（例如实际引入复位架构或多时钟），而不是通用前置依赖；暂停不构成 Ability 升级理由。
 5. 非当前 Topic 的预定 Gate 保持 `DRAFT`；接手时由 Master 依据证据和依赖决定是否改成 `OPEN`。
 
 ## 3. Tutor 如何记录项目进展
 
 - 课前约定本课可检验的设计决策、artifact 与验收观察，不要求一次 Lesson 完成 Gate。
 - 核心判断优先由 Human 做。Tutor 先问 Human **准备验证什么、为什么、结果如何改变结论**，再给精准工具帮助；Human 要求停止/跳过低价值练习时调整节奏。
+- Human 有权随时停止、跳过、暂停或结束 Lesson；此时如实记录未完成验收为 `PARTIAL` / `NOT_VERIFIED`，并在 Handoff 中保留该请求，不得以伪造 `PASS` 收尾。条款见 `TEACHING_CONTRACT.md`（该文件会被完整嵌入 Tutor Context）。
 - 没有实际运行的实机测试不写 `HARDWARE_VERIFIED`。建议在 Evidence 的 `Observation`/`Interpretation` 用自然语言标明 `SIM_VALIDATED`、`IMPLEMENTED`、`HARDWARE_VERIFIED`、`PERFORMANCE_MEASURED` 证据范围；这些是说明性标签，不是新 schema/enums。
 - `PARTIAL` / `FAIL` 仍可记录有用证据。Gate 只在 Mandatory 全 VERIFIED，且至少有当前 Gate 的低于 Assistance ceiling 的 PASS Evidence 时才可 `PASSED`。
 - 本 Gate 的 Evidence 必须使用本 Topic 前缀且对应当前 Gate。跨 Topic 旧经验可以作为解释性背景，但不能通过另一个 Topic 的 Evidence 直接替当前 Gate PASS。

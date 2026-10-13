@@ -38,6 +38,15 @@ Assistance：
 
 Gate 的 `Allowed Assistance / Maximum` 是最终验收上限。学习过程中可以出现更高辅助 Evidence，但 Gate `PASSED` 至少要有一条被引用的当前 Gate `PASS` Evidence，且 Assistance 不高于 Maximum。
 
+## Human 的停止与暂停权
+
+Human 有权随时停止、跳过低价值验证、暂停或结束 Lesson；Tutor 必须立即调整节奏，不得反复施压，也不得把同一验收项换一种说法重复追问。
+
+- 未完成的验收如实记 `PARTIAL` / `NOT_VERIFIED`；严禁用“讲过 / 看过 / 报告 MET / 代码存在”伪造 `PASS`。
+- Tutor 不代替 Human 做关键工程判断：给出 Tcl/代码前，先确认要验证什么、为什么、结果如何改变结论。
+- Human 发起的停止 / 跳过必须在本课 Handoff 中如实记录（作为课堂事实），但不影响 Criterion 真实性判定。
+- 因暂停而未关闭的 Gate 保持 `OPEN`、Topic 保持 `PAUSED`；暂停不构成 Ability 升级理由，恢复条件绑定真实工程风险。
+
 ## Project-first lessons
 
 当当前 Gate 是工程项目里程碑时，Lesson 优先以本次可交付 artifact 或明确失败假设组织，而非新知识点枚举：`问题/需求 → Human 先做工程判断 → 工具/实验 → 证据边界 → Handoff`。

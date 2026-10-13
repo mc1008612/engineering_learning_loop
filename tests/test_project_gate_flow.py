@@ -5,6 +5,7 @@ All simulated study results live inside disposable Git clones. None are user evi
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,9 +19,14 @@ class ProjectGateFlowTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory(prefix='project_gate_fixture_')
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name) / 'repo'
-        subprocess.run(['git','clone','--quiet','--no-local',str(SOURCE),str(self.root)], check=True)
-        self.run_git('config','user.name','Isolated Test Fixture')
-        self.run_git('config','user.email','fixture@local.invalid')
+        # 快照当前工作区（而非 clone HEAD），确保测试验证的是即将提交的内容。
+        shutil.copytree(SOURCE, self.root,
+                        ignore=shutil.ignore_patterns('.git', '.runtime', '__pycache__'))
+        self.run_git('init', '--quiet')
+        self.run_git('config', 'user.name', 'Isolated Test Fixture')
+        self.run_git('config', 'user.email', 'fixture@local.invalid')
+        self.run_git('add', '-A')
+        self.run_git('commit', '--quiet', '-m', 'baseline: working-tree snapshot for fixture')
         self.bootstrap()
 
     def run_git(self, *args):
@@ -70,11 +76,18 @@ class ProjectGateFlowTests(unittest.TestCase):
                 text=text.replace(f'<{k}>',v)
             self.assertNotIn('<TOPIC>',text)
             self.write(f'01_topics/{slug}/{name}.md',text)
-        self.replace_once('00_global/master_outline.md','current_topic: CLOCK_RESET','current_topic: PROJECT_DEMO')
-        self.replace_once('00_global/master_outline.md','master_checkpoint: CLOCK_RESET-GATE-G2','master_checkpoint: PROJECT_DEMO-GATE-G1')
-        self.replace_once('01_topics/CLOCK_RESET/state.md','status: ACTIVE','status: PAUSED')
-        self.replace_once('01_topics/CLOCK_RESET/state.md','master_review_required: true','master_review_required: false')
-        self.replace_once('01_topics/CLOCK_RESET/state.md','master_review_reason: OTHER','master_review_reason: NONE')
+        outline = self.read('00_global/master_outline.md')
+        self.old_topic = re.search(r'^current_topic: (.+)$', outline, re.M).group(1)
+        old_checkpoint = re.search(r'^master_checkpoint: (.+)$', outline, re.M).group(1)
+        self.replace_once('00_global/master_outline.md', f'current_topic: {self.old_topic}', f'current_topic: {slug}')
+        self.replace_once('00_global/master_outline.md', f'master_checkpoint: {old_checkpoint}', f'master_checkpoint: {gate}')
+        # 暂停原 current topic，但保留其 Gate 状态，形成“新项目推进 + 旧 Gate 未关闭”的场景。
+        old_state = f'01_topics/{self.old_topic}/state.md'
+        for old, new in (('status: ACTIVE', 'status: PAUSED'),
+                         ('master_review_required: true', 'master_review_required: false'),
+                         ('master_review_reason: OTHER', 'master_review_reason: NONE')):
+            if old in self.read(old_state):
+                self.replace_once(old_state, old, new)
 
     def commit_simulation(self):
         self.run_git('add','00_global','01_topics')
@@ -113,8 +126,8 @@ Artifacts:
     def test_project_topic_routes_to_tutor_while_old_gate_open(self):
         self.assertIn('REPO AUDIT: PASS',self.run_tool('tools/audit.py','--route'))
         self.assertIn('ROUTE:\nTUTOR',self.run_tool('tools/audit.py','--route'))
-        self.assertIn('Status: `OPEN`',self.read('01_topics/CLOCK_RESET/gates.md'))
-        self.assertIn('status: PAUSED',self.read('01_topics/CLOCK_RESET/state.md'))
+        self.assertIn('Status: `OPEN`',self.read(f'01_topics/{self.old_topic}/gates.md'))
+        self.assertIn('status: PAUSED',self.read(f'01_topics/{self.old_topic}/state.md'))
         self.assertIn('Host–Device Communication | L0',self.read('00_global/ability_profile.md'))
 
     def test_pending_changes_must_be_reviewed_and_committed_before_tutor(self):
@@ -284,6 +297,34 @@ Suggested Local Next:
         self.write('00_global/master_outline.md',self.read('00_global/master_outline.md')+'\n## Current Learning Focus\nDuplicate\n')
         out=self.run_tool('tools/audit.py','--route',expect=1)
         self.assertIn('must not duplicate frontmatter routing facts',out)
+
+
+    def test_every_spec_is_in_required_inventory_and_missing_spec_fails_audit(self):
+        specs = sorted(p.name for p in (self.root / '02_specs').glob('*.md'))
+        source = (self.root / 'tools/lib/repo.py').read_text(encoding='utf-8')
+        unlisted = [s for s in specs if f'02_specs/{s}' not in source]
+        self.assertEqual([], unlisted, '每个 02_specs/*.md 都必须登记在 repo.py 的 required 清单中')
+        (self.root / '02_specs/PROJECT_GATE_WORKFLOW.md').unlink()
+        out = self.run_tool('tools/audit.py', '--route', expect=1)
+        self.assertIn('missing 02_specs/PROJECT_GATE_WORKFLOW.md', out)
+
+    def test_tutor_context_embeds_teaching_contract_and_stop_rights(self):
+        self.commit_simulation()
+        script = r"""
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path.cwd()/'tools'))
+from lib.context import build_tutor_context
+print(build_tutor_context())
+"""
+        p = subprocess.run([sys.executable, '-c', script], cwd=self.root,
+                           capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        context = self.read(p.stdout.strip())
+        contract = self.read('02_specs/TEACHING_CONTRACT.md')
+        self.assertIn('## Teaching Contract', context)
+        self.assertIn(contract.strip(), context)
+        self.assertIn('Human 有权随时停止', contract)
 
 
 if __name__ == '__main__':
