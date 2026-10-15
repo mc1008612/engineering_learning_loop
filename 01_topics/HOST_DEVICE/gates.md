@@ -18,9 +18,9 @@ Mandatory: `YES`
 - 已有 Python 基础；不要求先关闭 CLOCK_RESET-GATE-G2。
 
 ### Mandatory Criteria
-- C1 — 书面定义 frame boundary、version、length、sequence、payload、CRC/checksum、异常帧与重新同步原则；解释现有物理链路与未来目标带宽的区别。
-- C2 — 独立实现可接收任意分块 byte stream 的 Python parser/reference decoder，与独立 golden vectors 对照一致；产物可复现。
-- C3 — 能设计并执行包含短帧、截断、插入垃圾字节、bit flip、丢帧、重启等边界的测试并解释错误统计、未覆盖边界与验证等级。
+- C1 — 书面定义并**独立审签** frame boundary、version、length、sequence、payload、CRC/checksum、异常帧与重新同步原则；说明现有物理链路与未来目标带宽的区别，并指出规格中**已知边界与被有意接受的取舍**。
+- C2 — **独立掌握参考实现的正确性**：独立推导并复核 golden vectors（含手工构造帧与 CRC 计算），并对 parser 的关键分支（任意分块、同步/失同步、SEQ 回绕）给出**自己的正确性论证与失败判据**。实现代码可由 AI 协作产出，但规格、向量与判定责任由 Human 持有。
+- C3 — 能**独立设计并判读**必要故障测试（短帧、截断、插入垃圾字节、bit flip、丢字节/整帧、重启/回绕、伪帧），解释错误统计口径（`bad_crc` / `sync_lost` / `sync_acquired` / `sequence_discontinuities` **不可相加**）以及未覆盖边界与验证等级。
 
 ### Stretch Criteria
 - S1 — 支持简单命令/响应与协议版本不兼容处理。
@@ -29,7 +29,7 @@ Mandatory: `YES`
 Maximum: `A1`
 
 ### Required Evidence
-- `protocol/PROTOCOL_V1.md`、`host/reference_client.py`、golden vectors 与边界测试报告；由 Human 说明协议和错误恢复的设计取舍。
+- `protocol/PROTOCOL_V1.md`（Human 独立审签）、Human **独立推导并复核**的 golden vectors、故障测试与判读报告；`host/reference_client.py` 可由 AI 协作实现，但规格、向量与正确性判定由 Human 持有并说明设计取舍。
 - 范围边界：不包含完整命令/响应协议与多版本兼容（属 S1）、性能/吞吐优化、连续流与背压（属 G3）；FPGA 实机链路确认不作为本 Gate 的前置条件。
 - 至少一条直接观察能力表现的 Evidence。
 - 若要求独立性，最终验收 Evidence 的 Assistance 不得高于 Gate 上限。

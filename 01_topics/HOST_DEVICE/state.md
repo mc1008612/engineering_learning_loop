@@ -3,8 +3,8 @@ schema: topic_state
 topic: HOST_DEVICE
 status: ACTIVE
 current_gate: HOST_DEVICE-GATE-G1
-master_review_required: true
-master_review_reason: OTHER
+master_review_required: false
+master_review_reason: NONE
 last_lesson_id: HOST_DEVICE-LSN-20261013-233205
 ---
 
@@ -19,7 +19,7 @@ Reason:
 Host–Device Communication 当前 L0；已有 Verilog/STA/Python 实践基础。优先通过可运行的项目组合已学能力，降低反复在单点 Gate 打转的成本。
 
 ## Current Objective
-G1（**最小可用范围**）：制定 Packet V1 协议契约，并由 Human 独立完成 Python 字节流解析、必要的错误检测/重同步与 golden-vector 验收。只做最小可用协议，不追求完整协议功能。
+G1（**最小可用范围**）：完成 Packet V1 契约的**独立审签**、**独立推导并复核 golden vectors**、以及**独立设计并判读**必要故障测试。代码实现可采用 AI 协作，但规格、向量与正确性判定由 Human 持有。
 
 ## Current Snapshot
 
@@ -27,18 +27,18 @@ Passed:
 - NONE
 
 In Progress:
-- HOST_DEVICE-GATE-G1 保持 OPEN；已形成 Packet V1 规格候选、Python 增量解析器、10 个固定 golden 帧和 12 类字节流测试场景，26/26 软件自动化测试通过；无 FPGA 实机证据。
-- Human 明确采用 AI 编码、本人审核协议及业务逻辑的分工；原始 G1-C2 独立实现与 Assistance≤A1 要求需 Master Review 处理。
+- HOST_DEVICE-GATE-G1 保持 OPEN；已具备 Packet V1 规格候选、可运行 Python 解析器、10 组冻结 golden 帧与 12 类场景，26/26 软件测试通过；无 FPGA 实机证据。
+- G1 独立性口径已由 Master 正式修订为「独立掌握正确性」（审签规格 / 独立推导并复核 golden vectors / 独立设计并判读故障测试），不再要求 Human 亲手编写 parser 代码；剩余验收为一次有界收尾会话。
 
 Not Yet Verified:
-- C1 规格最终 Human 独立审签：当前只有书面完整性与在引导下的业务审查，保持 PARTIAL。
-- C2 Human 在 A1 或更低辅助下独立实现并复测 Python Parser：当前 AI 直接编写代码，保持 PARTIAL。
-- C3 Human 在 A1 或更低辅助下独立设计、执行与判读必要故障测试：AI 测试覆盖充分但非合格独立 PASS Evidence，保持 PARTIAL。
-- 真实 GUI / FPGA RTL / USB-UART 回环均未实现或验证；不作为原 G1 的前置验收。
+- C1：Human 尚未完成规格的独立审签（当前为引导下审查），保持 PARTIAL。
+- C2：Human 尚未独立推导并复核 golden vectors，也未给出 parser 关键分支自己的正确性论证与失败判据，保持 PARTIAL。
+- C3：Human 尚未独立设计并判读必要故障测试（现有 26 项由 AI 编写执行），保持 PARTIAL。
+- 真实板卡 / FPGA RTL / USB-UART 实机回环未实现或验证；不作为 G1 的前置验收。
 
 ## Current Blockers
 
-- 原 Gate C2 规定 Human 独立实现、最终 Assistance≤A1，与 Human 现已明确选择的 AI 直接编码工作方式冲突；需要 Master Review 判定是否调整评估目标，不能由 Tutor 私下改变 Gate。
+- NONE
 
 ## Revalidation Flags
 
@@ -85,6 +85,6 @@ Suggested Local Next:
 
 ## Open Questions / Deferred
 
-- Master Review：保留原 C2 独立编码验收，还是正式修订为适配 AI 工程协作的独立规格审查、Golden Vector 设计、错误定位/风险判读？如修改，需明确不降低所要求的独立工程判断质量。
-- 真实开发板型号/USB-UART 桥接及引脚、电平、电气连接尚未核实；Vivado 2018.3 与 XC7A35T-FGG484-2 的讨论不足以证明板载物理链路可用。
-- 后续实机回环如何报告输入 UART RX 丢字节、错误及 FIFO 溢出：PC→FPGA 是无分帧原始 int16 流，若未显式上报 Host 无法仅靠输出 Packet V1 CRC 察觉；当前不扩展 V1。
+- 已解决（原 Master Review 问题，2026-10-15）：G1 的独立性口径正式修订为「独立掌握正确性」——独立审签规格、独立推导并复核 golden vectors、独立设计并判读故障测试。**不降低**独立工程判断要求，只是把「独立」的落点从"亲手写代码"移到"独立定义正确性 / 判读故障 / 说明边界"。
+- 非 Gate 早期确认项（G2 前置，不阻塞 G1）：实际开发板型号、UART 引脚、USB-UART 桥接器、电平，以及单个 COM 口的双向访问能力。
+- V1 不扩展：PC→FPGA 为无分帧原始 int16 流，输入侧丢字节/错误无法由输出 Packet V1 CRC 反推；留待 G2/G3 或显式 V2 讨论。真实回环如何上报输入 RX 丢字节与 FIFO 溢出一并留待该阶段决定。
