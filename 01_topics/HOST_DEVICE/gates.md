@@ -39,12 +39,16 @@ Maximum: `A1`
 Mandatory Criteria 全部满足 + 至少一条当前 Gate 的 `PASS` Evidence + Assistance 不高于 Maximum，才可 `PASSED`。
 
 ### Criterion Progress
-- C1: `NOT_VERIFIED`
-- C2: `NOT_VERIFIED`
-- C3: `NOT_VERIFIED`
+
+- C1: `PARTIAL`
+- C2: `PARTIAL`
+- C3: `PARTIAL`
 
 ### Evidence References
-- NONE
+
+- HOST_DEVICE-EXP-001
+- HOST_DEVICE-EXP-002
+- HOST_DEVICE-EXP-003
 
 ## HOST_DEVICE-GATE-G2 — FPGA→Host 最小实机数据闭环
 
