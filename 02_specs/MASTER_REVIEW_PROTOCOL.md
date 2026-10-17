@@ -57,9 +57,17 @@ Topic / Gate 变化
 
 ## Project-first planning
 
-Human 要求改为项目驱动路线时，Master 仍使用相同固定 `MASTER PLAN`，只是要在 `规划决策` / `Topic / Gate 变化` 内明确系统里程碑的唯一 owner Gate、前置依赖、交付证据与 Ability 候选影响。
+Human 要求改为项目驱动路线时，Master 仍使用相同固定 `MASTER PLAN`，在 `规划决策` / `Topic / Gate 变化` 内明确系统里程碑的唯一 owner Gate、前置依赖、交付证据与 Ability 候选影响。
 
 不要创建与 Gate 并行的 PASS 状态；不自动提升 `ability_profile`。旧 Topic 可 `PAUSED`、Gate 保留 `OPEN`，但新里程碑不得假装已经满足依赖。操作细节见 `PROJECT_GATE_WORKFLOW.md`。本扩展不削弱 **Read-only Review → Human Plan approval → diff review → Human commit approval**。
+
+## Reference-first Planning and Teaching Mode
+
+当需要选择新的工程路线或重要技术方案时，Master 优先调查来源可信、可复现且适配当前硬件/工具的成熟范例；必要时提供少量备选、适配差异与取舍，供 Human 审定。已批准的基线在普通 Gate Review 时不重复调查，除非需求或证据改变。
+
+Master 在**每次将新 Gate 交给 Tutor 前**，依据该 Gate 的主要验收目标指定 `PROJECT` 或 `CONCEPT`，在 MASTER PLAN 写明模式及理由。获 Human 批准后，将唯一 Gate→Mode 映射写入 `02_specs/TEACHING_MODE_ROUTE.md`。该文件只负责教学模式，不写入 `master_outline.md`；两种策略详见独立 Teaching Specs。
+
+模式映射属于会影响教学行为的规划配置：它虽然位于 Specs，仍必须经过 Master Plan 审批、diff 审核和独立 commit 授权。未审核的模式变更会阻止开课。
 
 ## Human Revision
 
@@ -79,7 +87,7 @@ Human 可以拒绝或调整计划，例如：
 
 应用后必须：
 
-1. 运行 `python tools/audit.py --route`；
+1. 运行 `python tools/audit.py --route`，包括 Teaching Mode Route 校验；
 2. 运行 `git status --short`；
 3. 展示已跟踪 learning files 的真实 diff；
 4. 如果出现 `??` 的新 `00_global/` / `01_topics/` 文件，普通 `git diff` 不会显示正文，必须额外完整展示这些新文件；
@@ -152,3 +160,5 @@ Master 把 `state.current_gate` / `master_checkpoint` 推进到新 Gate 时，�
 - `DRAFT` / `RETIRED` 不能作为 Tutor 当前 Gate；
 - `BLOCKED` 应保持/触发 Master Review，而不是继续开课；
 - `PASSED` Gate 会由 route 重新进入 Master Review。
+
+同时必须在 `TEACHING_MODE_ROUTE.md` 中完成新 Gate 的模式选型与审核。缺失或非法映射时 `audit` 阻止 Tutor route。

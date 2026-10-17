@@ -8,7 +8,7 @@ REPO_ERROR > PENDING_HANDOFF > PENDING_LESSON > PENDING_LEARNING_CHANGES > MASTE
 核心约束：Tutor Context 一旦创建，就必须同时建立唯一的本机 Tutor transaction manifest。
 活跃 Lesson 只由 `.runtime/tutor_transaction.json` 指认；历史 Context/Handoff 文件的 mtime
 永远不参与状态判断。该事务必须通过 Handoff apply 正常 Close，或由 Human 明确 Discard。
-聊天历史不参与状态判断。
+聊天历史不参与状态判断。Teaching Mode Route 虽存于 Specs，未提交的模式变更也会阻止下一课。
 """
 
 from __future__ import annotations
@@ -196,7 +196,8 @@ def pending_lessons() -> list[PendingLesson]:
 
 
 def learning_dirty_files() -> list[str]:
-    return git_status(["00_global", "01_topics"])
+    # Mode Route 虽在 Specs，但决定下一节 Gate 的教学策略；其未提交变更按学习状态审核。
+    return git_status(["00_global", "01_topics", "02_specs/TEACHING_MODE_ROUTE.md"])
 
 
 def repo_warnings() -> list[str]:
@@ -204,7 +205,8 @@ def repo_warnings() -> list[str]:
     warnings: list[str] = []
     for line in all_status:
         path = line[3:].strip() if len(line) >= 4 else line
-        if path.startswith("00_global/") or path.startswith("01_topics/"):
+        if (path.startswith("00_global/") or path.startswith("01_topics/")
+                or path == "02_specs/TEACHING_MODE_ROUTE.md"):
             continue
         warnings.append(line)
     return warnings
@@ -265,7 +267,7 @@ def current_flow_status() -> FlowStatus:
     if dirty:
         return FlowStatus(
             state="PENDING_LEARNING_CHANGES",
-            reason="00_global/ 或 01_topics/ 存在尚未完成 review/commit 的学习状态修改。",
+            reason="学习状态或 Teaching Mode Route 存在尚未 review/commit 的修改。",
             audit=audit,
             dirty_learning_files=dirty,
             warnings=warnings,

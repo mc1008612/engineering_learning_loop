@@ -61,6 +61,8 @@ PENDING_HANDOFF
 
 Human 应回到原 Web Tutor，结合完整课堂对话讨论并让 Tutor 输出**完整修正版 Handoff**。浏览器通常会得到 `(1)` 等文件名。
 
+当 Notes Delta 的 `Engineering Rules` 含 `DECISION:` 条目时，本地 Master/Codex 在 Preview 阶段辅助核对：该决定是否经过 Human 明确认可、是否与既有决定冲突。由 Human 审核后才允许 Apply；若记录失实，通过上面的 Tutor 修订路径纠正。无需增加 Handoff 字段或状态。
+
 确认候选确实是当前 Lesson 的 Tutor 修订版后，用：
 
 ```bash
@@ -138,13 +140,13 @@ Pending Lesson 只有两个结束出口：
 
 ## Pending Transaction 与并行 learning-state 修改
 
-Tutor Context 创建后，`00_global/` 与 `01_topics/` 参与 fingerprint 的学习事实不应在本 Lesson Close 前被并行提交。
+Tutor Context 创建后，`00_global/`、`01_topics/` 参与 fingerprint 的学习事实，以及当前 Gate 的 Teaching Mode Route，不应在本 Lesson Close 前并行更改。
 
-如果 `PENDING_LESSON` / `PENDING_HANDOFF` 期间检测到这些 learning files 发生未提交变化：
+如果 `PENDING_LESSON` / `PENDING_HANDOFF` 期间检测到这些 learning files 或 Mode Route 的未提交变化：
 
 - Pending Lesson/Handoff 状态优先，不把它误报成普通 `PENDING_LEARNING_CHANGES`；
 - 不要 commit 这些并行修改；
-- 若 Lesson 已经发生，先 revert / stash / 另存，使长期学习文件恢复到开课时状态，再 collect / preview / apply 当前 Handoff；
+- 若 Lesson 已经发生，先另存并恢复开课时的长期学习事实与 Mode Route，再 collect / preview / apply 当前 Handoff；
 - 若 Human 明确确认 Lesson 实际从未发生，仍允许显式 Discard；Discard 后再处理这些并行修改。
 
 否则当前 Context/Handoff 会因为 fingerprint 改变而 `STALE`。

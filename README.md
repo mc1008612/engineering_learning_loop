@@ -38,6 +38,8 @@ git commit -m "meta: initialize engineering learning loop"
 
 ### 开 Web Tutor
 
+Master 会为每个新 Gate 指定 PROJECT / CONCEPT 教学模式并让 Human 审批；Python 根据 `02_specs/TEACHING_MODE_ROUTE.md` 只装配当前模式的策略。模式配置缺失或待审批时不允许开课。
+
 状态允许开课时，对 Codex 说：
 
 ```text
@@ -98,9 +100,9 @@ Codex 会收取并 validate，然后给你 preview。你主要检查 Tutor 对�
 ### 日常可以直接修改
 
 - 你正在学习过程中产生的工程源码、工程配置、report、实验文件；
-- 明确的 Repo maintenance 任务中的 `README.md`、`AGENTS.md`、`02_specs/`、`03_templates/`、`tools/`。
+- 明确的 Repo maintenance 任务中的 `README.md`、`AGENTS.md`、一般 `02_specs/`、`03_templates/`、`tools/`。
 
-这些系统文件的修改属于维护工作，不等于课程学习状态更新。
+这些系统文件的修改属于维护工作，不等于课程学习状态更新。**例外**：`TEACHING_MODE_ROUTE.md` 的 Gate→Mode 映射变更必须先经过 Master Plan 和 Human 审批。
 
 ### 需要经过 Master Plan 批准后修改
 

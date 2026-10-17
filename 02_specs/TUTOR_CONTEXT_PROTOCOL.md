@@ -1,6 +1,6 @@
 # Tutor Context Protocol
 
-本文件定义 Web Tutor 每个新 Lesson 唯一收到的 Repo 状态入口：`TUTOR_CONTEXT`。
+本文件定义 Web Tutor 每个新 Lesson 的 Repo 学习状态入口：`TUTOR_CONTEXT`，以及配套启动消息的教学规范装配。两者由同一次 `start-tutor` 产生。
 
 Tutor Context 由：
 
@@ -27,6 +27,7 @@ schema: tutor_context
 lesson_id: ...
 topic: ...
 current_gate: ...
+teaching_mode: PROJECT | CONCEPT
 next_evidence_id: ...
 context_file: .runtime/context/TUTOR_CONTEXT_....md
 handoff_filename: TUTOR_HANDOFF_<lesson_id>.md
@@ -43,7 +44,7 @@ fingerprint_ability_profile: ...
 
 包含：
 
-- Teaching Contract；
+- 当前 Gate 已选模式的只读 `teaching_mode` 标识（在 frontmatter 中）；
 - 由 Master frontmatter + 当前 Topic State 动态生成的 Current Learning Focus；
 - Ability baseline；
 - Topic State；
@@ -52,7 +53,17 @@ fingerprint_ability_profile: ...
 - Topic Notes；
 - **完整嵌入的 Tutor Handoff Protocol**，并用明确的 BEGIN/END marker 与 Context 其他内容分隔。
 
-不自动塞整个工程源码、所有历史 Evidence、课程 PDF 或其他 Topic 全文。
+不自动塞整个工程源码、所有历史 Evidence、课程 PDF 或其他 Topic 全文；Shared Contract 与教学模式策略不在 Context 中重复出现。
+
+## Tutor Start Prompt
+
+Python 根据 `02_specs/TEACHING_MODE_ROUTE.md` 的当前 Gate 映射，选择合法的 `PROJECT` 或 `CONCEPT`：
+
+- 启动消息自动装配 `TEACHING_CONTRACT.md` 的共同教学原则全文；
+- 再装配 `TEACHING_PROJECT.md` 或 `TEACHING_CONCEPT.md` **恰好一份**；
+- 最后添加 `03_templates/prompts/tutor_start.md` 中的 Lesson ID、Context 路径及 Handoff 文件名。
+
+模式缺失、重复、非法或 Context 与路由不匹配时，Python 必须拒绝开课。Web Tutor 不需要访问本地 `02_specs/` 路径。
 
 ## Canonical Handoff Protocol
 
@@ -86,7 +97,7 @@ Web Tutor 完成本 Lesson 所必需的 Handoff 输出规则只有一个长期�
 
 因此以下 metadata 的手工修改也会造成 hash mismatch：
 
-- lesson/topic/gate；
+- lesson/topic/gate/teaching_mode；
 - `next_evidence_id`；
 - `context_file`；
 - `handoff_filename`；

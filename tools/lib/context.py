@@ -5,10 +5,10 @@ Engineering Learning Loop 的 Context 生成模块。
 - 生成新的 Tutor Context；
 - 生成只读 Master Review Context；
 - 生成 Lesson ID、Context 文件名与预期 Handoff 文件名；
-- 计算覆盖 frontmatter + body 的 Context SHA256；
-- 从真实 Evidence ledger 计算下一 Evidence ID。
+- 计算覆盖 frontmatter + body 的 Context SHA256，保留选定的 teaching_mode 运行时标识；
+- 从真实 Evidence ledger 计算下一 Evidence ID；
 - 从 `02_specs/TUTOR_HANDOFF_PROTOCOL.md` 读取唯一 canonical Tutor Handoff 运行时协议，
-  并完整嵌入每一份 Tutor Context。
+  并完整嵌入每一份 Tutor Context（教学合同与单一模式策略由 render.py 生成 Start Prompt）。
 
 Tutor Context 的生成本身会开启一个 Pending Lesson 事务；是否允许生成由上层
 `learning.py` / `lib.flow` 判断。本模块只负责确定性构造，不负责浏览器、剪贴板或课程决策。
@@ -35,6 +35,8 @@ from .repo import (
     section,
     sha,
     sha_bytes,
+    teaching_mode_for_gate,
+    TEACHING_MODE_ROUTE,
     wr,
 )
 
@@ -188,6 +190,7 @@ def build_tutor_context() -> Path:
     state_text = rd(paths["state"])
     state_fm = frontmatter(state_text)
     gate_id = state_fm.get("current_gate", "NONE")
+    teaching_mode = teaching_mode_for_gate(gate_id)
     gates_text = rd(paths["gates"])
     gate_block = extract_gate(gates_text, gate_id)
     evidence_text = rd(paths["evidence"])
@@ -202,10 +205,6 @@ def build_tutor_context() -> Path:
     body = "\n".join(
         [
             "# Tutor Context",
-            "",
-            "## Teaching Contract",
-            "",
-            rd(S / "TEACHING_CONTRACT.md"),
             "",
             "## Current Learning Focus",
             "",
@@ -248,6 +247,7 @@ def build_tutor_context() -> Path:
         f"lesson_id: {lesson_id}",
         f"topic: {topic}",
         f"current_gate: {gate_id}",
+        f"teaching_mode: {teaching_mode}",
         f"next_evidence_id: {next_evidence_id(evidence_text, topic)}",
         f"context_file: {context_rel.as_posix()}",
         f"handoff_filename: {handoff_name}",
@@ -328,6 +328,10 @@ trigger: {trigger}
 ## Trigger Relevant Evidence
 
 {trigger_evidence}
+
+## Teaching Mode Route
+
+{rd(TEACHING_MODE_ROUTE)}
 
 ## Master Review Protocol
 

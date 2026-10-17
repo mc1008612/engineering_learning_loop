@@ -22,14 +22,11 @@
 4. 同时只允许一个 `current_topic` + `current_gate` 进入 Tutor 路由；未完成的旧 Gate 可以仍 `OPEN`，Topic 设置 `PAUSED` 并记录恢复条件，绝不伪装成 `PASSED`。恢复条件应绑定真实工程风险（例如实际引入复位架构或多时钟），而不是通用前置依赖；暂停不构成 Ability 升级理由。
 5. 非当前 Topic 的预定 Gate 保持 `DRAFT`；接手时由 Master 依据证据和依赖决定是否改成 `OPEN`。
 
-## 3. Tutor 如何记录项目进展
+## 3. 项目证据的验证范围
 
-- 课前约定本课可检验的设计决策、artifact 与验收观察，不要求一次 Lesson 完成 Gate。
-- 核心判断优先由 Human 做。Tutor 先问 Human **准备验证什么、为什么、结果如何改变结论**，再给精准工具帮助；Human 要求停止/跳过低价值练习时调整节奏。
-- Human 有权随时停止、跳过、暂停或结束 Lesson；此时如实记录未完成验收为 `PARTIAL` / `NOT_VERIFIED`，并在 Handoff 中保留该请求，不得以伪造 `PASS` 收尾。条款见 `TEACHING_CONTRACT.md`（该文件会被完整嵌入 Tutor Context）。
-- 没有实际运行的实机测试不写 `HARDWARE_VERIFIED`。建议在 Evidence 的 `Observation`/`Interpretation` 用自然语言标明 `SIM_VALIDATED`、`IMPLEMENTED`、`HARDWARE_VERIFIED`、`PERFORMANCE_MEASURED` 证据范围；这些是说明性标签，不是新 schema/enums。
-- `PARTIAL` / `FAIL` 仍可记录有用证据。Gate 只在 Mandatory 全 VERIFIED，且至少有当前 Gate 的低于 Assistance ceiling 的 PASS Evidence 时才可 `PASSED`。
-- 本 Gate 的 Evidence 必须使用本 Topic 前缀且对应当前 Gate。跨 Topic 旧经验可以作为解释性背景，但不能通过另一个 Topic 的 Evidence 直接替当前 Gate PASS。
+项目进展仍通过当前 Gate 的 Lesson 和 Evidence 记录。没有实际运行实机测试时，不能把结果标成实机验证；可在 Evidence 的 `Observation`/`Interpretation` 中注明 `SIM_VALIDATED`、`IMPLEMENTED`、`HARDWARE_VERIFIED`、`PERFORMANCE_MEASURED` 等说明性验证范围（不新增 schema/enum）。
+
+Tutor 教学行为参照共同教学规范与选中的 Project Mode；Evidence 字段、Gate PASS 与 Assistance ceiling 以现有 Gate/Handoff 机械协议为准。
 
 ## 4. Ability Profile 怎么更新
 
@@ -49,7 +46,7 @@ Ability 表示长期、粗粒度的独立能力，不是 Gate 完成数量的函
 ## 5. 和严格 Repo 协议的关系
 
 - 原 `CURRENT_STATE`、优先级、pending transaction、fingerprint、Append-only、Gate PASS 规则全部不变。
-- `PENDING_LEARNING_CHANGES` 时必须先处理既有工作区差异；不能绕过状态机新建 Topic 或开课。
+- `PENDING_LEARNING_CHANGES` 时必须先处理既有工作区差异（包括 `TEACHING_MODE_ROUTE.md`）；不能绕过状态机新建 Topic 或开课。
 - 本流程为 Repo maintenance 规则说明；**不是**某个 Master Plan 的默许批准。`master_outline/ability_profile/01_topics` 仍遵循独立的 `MASTER PLAN → Human 批准 → 审核 diff → Human commit 批准`。
 - 可以在隔离测试仓库模拟变更和 Git commit；不得把这种演练视为 Human 已批准真实能力变化。
 

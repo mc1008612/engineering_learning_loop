@@ -2,7 +2,7 @@
 Engineering Learning Loop 的人类可读文本渲染模块。
 
 本模块只负责把已经确定的状态与模板渲染成：
-- Tutor Start Prompt；
+- Tutor Start Prompt（共同教学合同 + Gate 选中模式策略 + 启动参数）；
 - `learning.py status` 的 CURRENT STATE / NEXT ACTION 输出。
 
 它不读取课程语义、不决定 route、不修改长期学习状态。
@@ -13,7 +13,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from .flow import FlowStatus
-from .repo import ROOT, TEMPLATES, rd
+from .repo import (
+    ROOT, TEMPLATES, frontmatter, rd, shared_teaching_contract,
+    teaching_mode_for_gate, teaching_mode_spec,
+)
 
 
 def render_tutor_start_prompt(context_path: Path, lesson_id: str, handoff_filename: str) -> str:
@@ -27,7 +30,17 @@ def render_tutor_start_prompt(context_path: Path, lesson_id: str, handoff_filena
     text = template
     for key, value in replacements.items():
         text = text.replace(key, value)
-    return text.rstrip() + "\n"
+    metadata = frontmatter(rd(context_path))
+    gate = metadata.get("current_gate", "")
+    mode = teaching_mode_for_gate(gate)
+    if metadata.get("teaching_mode") != mode:
+        raise ValueError("Tutor Context teaching_mode differs from approved Gate route")
+    # 规则只有 02_specs/ 一份源文件；这里编译成可直接粘贴的启动消息。
+    return "\n\n".join([
+        "## Shared Teaching Contract\n\n" + shared_teaching_contract(),
+        f"## Active Teaching Strategy ({mode})\n\n" + teaching_mode_spec(mode),
+        "## Lesson Start\n\n" + text.strip(),
+    ]) + "\n"
 
 
 def render_flow_status(status: FlowStatus, master_context: Path | None = None) -> str:
@@ -60,15 +73,15 @@ def render_flow_status(status: FlowStatus, master_context: Path | None = None) -
         lines.append("先修复上面的 Repo/Git 错误；在错误消失前不要继续学习流程。")
     elif status.state == "PENDING_LEARNING_CHANGES":
         lines += [
-            "先 review 当前 learning-state diff。确认无误后由 Human 明确批准 commit；",
-            "如果 `git status --short` 中存在 `??` 新 learning files，普通 `git diff` 看不到它们；必须额外完整展示/读取这些新文件后再请求 Human 批准。",
+            "先 review 当前 learning-state / Teaching Mode Route diff，确认无误后由 Human 明确批准 commit；",
+            "如有 `??` 新学习文件或 TEACHING_MODE_ROUTE.md，普通 `git diff` 看不到其正文；必须额外完整审阅再请求 commit 授权。",
             "commit 完成后重新运行 `python tools/learning.py status`。",
         ]
     elif status.state == "PENDING_HANDOFF":
         if status.dirty_learning_files:
             lines += [
                 "先不要 preview/apply，也不要 commit 上面的并行 learning-state 修改。",
-                "这些修改发生在本 Lesson Context 之后，会让已收取 Handoff 变成 STALE；先 revert/stash/另存，使 00_global/ 与 01_topics/ 恢复到开课时状态。",
+                "这些修改发生在本 Lesson Context 之后，可能使 Handoff STALE；先保存并恢复本 Lesson 相关学习文件与 Mode Route 的开课时状态。",
                 "恢复干净后重新运行 `python tools/learning.py status`，再继续 Handoff review。",
             ]
             return "\n".join(lines).rstrip() + "\n"
@@ -81,7 +94,7 @@ def render_flow_status(status: FlowStatus, master_context: Path | None = None) -
     elif status.state == "PENDING_LESSON":
         if status.dirty_learning_files:
             lines += [
-                "如果本 Lesson 已经发生学习：先不要 collect 或 commit 上面的并行 learning-state 修改；先 revert/stash/另存，使 00_global/ 与 01_topics/ 恢复到开课时状态。",
+                "如果本 Lesson 已经发生学习：先不要 collect 或 commit 并行学习事实/Mode Route 修改；先保存并恢复开课时的相关文件。",
                 "如果 Human 明确确认本 Lesson 实际从未发生：仍可显式 `discard-lesson --confirm <lesson_id>`；Discard 后再处理这些并行修改。",
                 "恢复或 Discard 后重新运行 `python tools/learning.py status`。",
             ]

@@ -52,6 +52,7 @@ from .repo import (
     replace_section,
     section,
     sha,
+    teaching_mode_for_gate,
     update_frontmatter,
 )
 
@@ -168,6 +169,10 @@ def validate_handoff(path: Path) -> HandoffValidation:
     context_fm = frontmatter(context_text)
     if context_fm.get("schema") != "tutor_context":
         raise ValueError("context_file is not tutor_context")
+    # 保持 Handoff schema 不变；阻止已获批模式在开课后被切换而继续使用旧 Context。
+    if (context_fm.get("teaching_mode") is not None
+            and context_fm["teaching_mode"] != teaching_mode_for_gate(meta["gate"])):
+        raise RuntimeError("STALE: teaching mode route changed after Lesson start")
     for handoff_key, context_key in (("lesson_id", "lesson_id"), ("topic", "topic"), ("gate", "current_gate"), ("context_file", "context_file")):
         if meta[handoff_key] != context_fm.get(context_key):
             raise ValueError(f"handoff {handoff_key} does not match context")

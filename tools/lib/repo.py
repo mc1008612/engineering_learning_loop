@@ -50,6 +50,9 @@ EVIDENCE_RESULTS = {"PASS", "PARTIAL", "FAIL"}
 ASSISTANCE = {"A0", "A1", "A2", "A3"}
 ASSISTANCE_RANK = {"A0": 0, "A1": 1, "A2": 2, "A3": 3}
 MASTER_ACTIONS = {"TUTOR", "MASTER_REVIEW"}
+TEACHING_MODES = {"PROJECT", "CONCEPT"}
+TEACHING_MODE_ROUTE = S / "TEACHING_MODE_ROUTE.md"
+MODE_SPEC_FILES = {"PROJECT": "TEACHING_PROJECT.md", "CONCEPT": "TEACHING_CONCEPT.md"}
 TOPIC_SLUG_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 NOTES_SECTION_ORDER = (
     "Durable Mental Models",
@@ -111,6 +114,70 @@ def frontmatter(text: str) -> dict[str, str]:
             key, value = line.split(":", 1)
             out[key.strip()] = value.strip().strip("'\"")
     return out
+
+
+def teaching_mode_routes() -> dict[str, str]:
+    """独立的 Gate->Mode 配置；显式拒绝重复 key，避免宽松 frontmatter parser 静默覆盖。"""
+    if not TEACHING_MODE_ROUTE.is_file():
+        raise ValueError("missing 02_specs/TEACHING_MODE_ROUTE.md")
+    text = rd(TEACHING_MODE_ROUTE)
+    if not text.startswith("---\n"):
+        raise ValueError("teaching mode route: missing frontmatter")
+    end = text.find("\n---\n", 4)
+    if end < 0:
+        raise ValueError("teaching mode route: unterminated frontmatter")
+    routes: dict[str, str] = {}
+    schema_count = 0
+    gate_pattern = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*-GATE-[A-Za-z0-9_-]+$")
+    for line in text[4:end].splitlines():
+        if not line.strip() or ":" not in line:
+            raise ValueError("teaching mode route: malformed frontmatter entry")
+        key, value = (x.strip() for x in line.split(":", 1))
+        if key == "schema":
+            schema_count += 1
+            if value != "teaching_mode_route":
+                raise ValueError("teaching mode route: invalid schema")
+            continue
+        if not gate_pattern.fullmatch(key):
+            raise ValueError(f"teaching mode route: invalid gate ID {key!r}")
+        if key in routes:
+            raise ValueError(f"teaching mode route: duplicate mapping {key}")
+        if value not in TEACHING_MODES:
+            raise ValueError(f"teaching mode route: invalid mode {value!r} for {key}")
+        routes[key] = value
+    if schema_count != 1:
+        raise ValueError("teaching mode route: schema must appear exactly once")
+    return routes
+
+
+def teaching_mode_for_gate(gate_id: str) -> str:
+    mode = teaching_mode_routes().get(gate_id)
+    if mode is None:
+        raise ValueError(f"teaching mode route: missing mapping for {gate_id}")
+    return mode
+
+
+def teaching_mode_spec(mode: str) -> str:
+    if mode not in MODE_SPEC_FILES:
+        raise ValueError(f"invalid teaching mode: {mode}")
+    path = S / MODE_SPEC_FILES[mode]
+    if not path.is_file():
+        raise ValueError(f"missing teaching spec: {path.name}")
+    text = rd(path).strip()
+    title = "Project Mode" if mode == "PROJECT" else "Concept Mode"
+    if not text.startswith(f"# {title}\n"):
+        raise ValueError(f"invalid or empty teaching spec: {path.name}")
+    return text
+
+
+def shared_teaching_contract() -> str:
+    path = S / "TEACHING_CONTRACT.md"
+    if not path.is_file():
+        raise ValueError("missing TEACHING_CONTRACT.md")
+    text = rd(path).strip()
+    if not text.startswith("# Teaching Contract\n"):
+        raise ValueError("invalid or empty Teaching Contract")
+    return text
 
 
 def update_frontmatter(text: str, updates: dict[str, str]) -> str:
@@ -475,6 +542,9 @@ def audit_repository(check_git_append_only: bool = True) -> AuditResult:
         "00_global/master_outline.md",
         "00_global/ability_profile.md",
         "02_specs/TEACHING_CONTRACT.md",
+        "02_specs/TEACHING_PROJECT.md",
+        "02_specs/TEACHING_CONCEPT.md",
+        "02_specs/TEACHING_MODE_ROUTE.md",
         "02_specs/ROLE_PROTOCOL.md",
         "02_specs/DATA_MODEL.md",
         "02_specs/TUTOR_CONTEXT_PROTOCOL.md",
@@ -494,6 +564,15 @@ def audit_repository(check_git_append_only: bool = True) -> AuditResult:
             errors.append("missing " + rel)
     if errors:
         return AuditResult(errors, warnings, [], "NONE", None, None, None)
+
+    try:
+        mode_routes = teaching_mode_routes()
+        shared_teaching_contract()
+        for mode in sorted(TEACHING_MODES):
+            teaching_mode_spec(mode)
+    except ValueError as exc:
+        errors.append(str(exc))
+        mode_routes = {}
 
     # Base Repo 也要保证 Topic Bootstrap 模板本身可被后续 parser/apply 使用。
     template_state = rd(TEMPLATES / "NEW_TOPIC" / "state.md")
@@ -697,6 +776,11 @@ def audit_repository(check_git_append_only: bool = True) -> AuditResult:
             if check_git_append_only:
                 _append_only_check(topic, evidence_text, errors)
 
+    known_gates = {gate_id for text in gates_texts.values() for gate_id in gate_ids(text)}
+    for mapped_gate in mode_routes:
+        if mapped_gate not in known_gates:
+            errors.append(f"teaching mode route: unknown Gate {mapped_gate}")
+
     if current != "NONE" and current not in live:
         errors.append("current_topic has no live Topic")
     if current != "NONE" and current in states and action == "TUTOR":
@@ -706,6 +790,8 @@ def audit_repository(check_git_append_only: bool = True) -> AuditResult:
             errors.append(f"current Topic must be ACTIVE for TUTOR route: {current_state.get('status')}")
         if current_gate == "NONE":
             errors.append("current_action=TUTOR requires a current_gate")
+        elif current_gate not in mode_routes:
+            errors.append(f"teaching mode route: missing mapping for {current_gate}")
         if checkpoint == "NONE":
             errors.append("current_action=TUTOR requires a master_checkpoint")
         elif current_gate != "NONE" and checkpoint != current_gate:

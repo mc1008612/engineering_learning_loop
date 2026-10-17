@@ -67,14 +67,21 @@ Curated knowledge。普通 Tutor Handoff 只向固定 durable section append 去
 DATA_MODEL.md                数据模型与 enum
 FILE_CONTRACTS.md            文件职责
 ROLE_PROTOCOL.md             Human / Tutor / Codex / Python 边界
-TEACHING_CONTRACT.md         Web Tutor 教学原则
+TEACHING_CONTRACT.md         Web Tutor 共同教学原则
+TEACHING_PROJECT.md          Project Mode 专属策略
+TEACHING_CONCEPT.md          Concept Mode 专属策略
+TEACHING_MODE_ROUTE.md       Gate ID -> Mode 配置（需 Master Plan + Human 审批）
 MASTER_REVIEW_PROTOCOL.md    Master Review / Human approval / Topic Bootstrap
 TUTOR_CONTEXT_PROTOCOL.md    Tutor Context 的生成与自包含要求
 TUTOR_HANDOFF_PROTOCOL.md    Web Tutor Handoff 的完整 runtime canonical protocol
 LOCAL_HANDOFF_WORKFLOW.md    Downloads → validate → preview → apply 的本地流程
 ```
 
-其中只有 `TUTOR_HANDOFF_PROTOCOL.md` 会被 Python 完整嵌入 Web Tutor Context。Web Tutor 不需要读取其他 Repo 路径。
+Runtime 装配：`TUTOR_HANDOFF_PROTOCOL.md` 完整进入 Tutor Context；共享教学规则及选中的模式策略进入 Tutor Start Prompt。Web Tutor 不需要读取其他 Repo 路径。
+
+### TEACHING_MODE_ROUTE.md
+
+Gate ID → 教学模式的独立配置。属于 Master 规划配置，即使位于 Specs，也必须先获批 Master Plan、审核 diff、授权 commit；未提交或非法配置阻止开课。`master_outline.md` 不持有教学模式。
 
 ### PROJECT_GATE_WORKFLOW.md
 
@@ -88,7 +95,7 @@ LOCAL_HANDOFF_WORKFLOW.md    Downloads → validate → preview → apply 的本
 
 ### prompts/tutor_start.md
 
-Web Tutor 新会话的固定开课模板。`learning.py start-tutor` 填入 Context / Lesson / Handoff 文件名后复制到系统剪贴板。
+Web Tutor 新会话的固定入口模板。`render.py` 先附加共同教学合同和当前 Gate 唯一选中的模式策略，再填入 Context / Lesson / Handoff 参数，生成可粘贴的启动消息。
 
 ## tools
 
@@ -118,7 +125,7 @@ Tutor Handoff 确定性事务：
 
 ### lib/
 
-内部共享模块，不作为日常 CLI。统一实现 Repo parser、flow、Context、Handoff、render、本机 I/O。
+内部共享模块，不作为日常 CLI。统一实现 Repo parser、Gate→Mode 路由、flow、Context、Handoff、render、本机 I/O。
 
 ## .runtime
 

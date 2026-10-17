@@ -54,7 +54,7 @@ Repo/runtime 的实际状态优先于 Human 对流程位置的假设。
 python tools/learning.py master-review
 ```
 
-这是只读入口：使用生成的 Master Context + Human 当前消息输出完整中文 `MASTER PLAN`。Human 批准前不得修改 `00_global/` 或 `01_topics/`。
+这是只读入口：使用生成的 Master Context + Human 当前消息输出完整中文 `MASTER PLAN`。Human 批准前不得修改 `00_global/`、`01_topics/` 或 `02_specs/TEACHING_MODE_ROUTE.md` 的规划映射。
 
 Human 原话不是直接写入 `master_outline.md` 的数据。只有 Human 批准后的规划结果才落盘。
 
@@ -101,6 +101,10 @@ master_review_reason: NONE
 
 若 `REMAINS`，保留合法非 `NONE` reason。不要让已解决 signal 因忘记清理而形成 sticky review loop。
 
+### Teaching Mode 规划
+
+Master 为将要交给 Tutor 的每个新 Gate 选择 `PROJECT` 或 `CONCEPT`，在 MASTER PLAN 说明原因，经 Human 批准后维护 `02_specs/TEACHING_MODE_ROUTE.md` 的 Gate→Mode 映射。该文件虽在 Specs，其课程配置变更仍遵守 Master Plan → diff review → Human commit approval；不要写到 master_outline frontmatter。
+
 ### Topic / Gate 修改
 
 Topic machine slug 同时用于目录、`current_topic`、Lesson/Gate/Evidence ID 前缀，只允许：
@@ -138,7 +142,7 @@ python tools/learning.py start-tutor
 
 成功后会建立唯一 `.runtime/tutor_transaction.json`。它只保存当前事务 identity；历史 Context/Handoff 的 mtime 不参与状态判断。
 
-向 Human说明：上传 Context、粘贴 Prompt、追加本课偏好、手动发送。Context 已自包含 Tutor Handoff Protocol，不要求额外上传 Specs。
+向 Human说明：上传 Context、粘贴 Prompt、追加本课偏好、手动发送。启动 Prompt 已装配共同教学合同和选中的 Project/Concept 规范；Context 已自包含 Tutor Handoff Protocol，不要求额外上传 Specs。
 
 ## 6. 收取与纠正 Tutor Handoff
 
@@ -182,9 +186,11 @@ Human审核后才：
 python tools/handoff.py apply <handoff>
 ```
 
+Notes Delta 的 `Engineering Rules` 含 `DECISION:` 时，按 `LOCAL_HANDOFF_WORKFLOW.md` 在 Preview 审核 Human 已确认的决策与已有规则的一致性。
+
 apply 只确定性修改当前 Topic 四文件并在成功 Close 后清除 Tutor transaction pointer，不自动 commit。
 
-如果 Pending Lesson/Handoff 期间 `00_global/` 或 `01_topics/` 出现并行修改，不要 commit；先 revert/stash/另存，使参与 fingerprint 的学习事实恢复到开课时状态。若 Lesson 实际从未发生，Human 仍可明确 Discard；Discard 后再处理这些并行修改。
+如果 Pending Lesson/Handoff 期间 `00_global/`、`01_topics/` 或 `TEACHING_MODE_ROUTE.md` 出现并行修改，不要 commit；先另存并恢复开课时的学习事实与 Mode Route。若 Lesson 实际从未发生，Human 仍可明确 Discard；Discard 后再处理这些并行修改。
 
 ## 8. Discard
 
@@ -200,13 +206,13 @@ python tools/learning.py discard-lesson --confirm <LESSON_ID>
 
 正常学习流中：
 
-- Master-approved planning 才修改 `master_outline / ability_profile / Topic scheduling facts`；
+- Master-approved planning 才修改 `master_outline / ability_profile / Topic scheduling facts / TEACHING_MODE_ROUTE.md` 的课程映射；
 - Tutor Handoff apply 才修改普通 Lesson 的 State/Gate Progress/Evidence/Notes；
 - Evidence 历史 append-only；
 - 不直接编辑 runtime transaction/incoming/Handoff 来推进状态；
 - Human 工程源码与实验文件可正常修改，除非某个具体课程协议另有说明。
 
-Repo maintenance（README/AGENTS/Specs/Templates/tools）按普通开发任务处理，不强行套 Master 课程事务。
+普通 Repo maintenance（README/AGENTS/其余 Specs/Templates/tools）按开发任务处理；Teaching Mode Route 的规划映射单独遵守 Master 审批。
 
 ## 10. 协议维护一致性
 

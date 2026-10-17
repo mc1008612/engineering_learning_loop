@@ -83,6 +83,10 @@ class ProjectGateFlowTests(unittest.TestCase):
         self.replace_once('00_global/master_outline.md', f'master_checkpoint: {old_checkpoint}', f'master_checkpoint: {gate}')
         # 暂停原 current topic，但保留其 Gate 状态，形成“新项目推进 + 旧 Gate 未关闭”的场景。
         old_state = f'01_topics/{self.old_topic}/state.md'
+        # 每条新 Gate 在 Master Plan 后取得唯一 Mode 路由；fixture 模拟已批准路线。
+        self.replace_once('02_specs/TEACHING_MODE_ROUTE.md',
+                          'HOST_DEVICE-GATE-G1: PROJECT',
+                          'HOST_DEVICE-GATE-G1: PROJECT\nPROJECT_DEMO-GATE-G1: PROJECT')
         for old, new in (('status: ACTIVE', 'status: PAUSED'),
                          ('master_review_required: true', 'master_review_required: false'),
                          ('master_review_reason: OTHER', 'master_review_reason: NONE')):
@@ -90,7 +94,7 @@ class ProjectGateFlowTests(unittest.TestCase):
                 self.replace_once(old_state, old, new)
 
     def commit_simulation(self):
-        self.run_git('add','00_global','01_topics')
+        self.run_git('add','00_global','01_topics','02_specs/TEACHING_MODE_ROUTE.md')
         self.run_git('commit','-m','TEST FIXTURE ONLY: simulate reviewed learning changes')
 
     def mark_gate_pass(self,assistance='A1',result='PASS'):
@@ -259,6 +263,14 @@ Suggested Local Next:
         self.write(handoff_rel,handoff)
         self.assertIn('CURRENT_STATE: PENDING_HANDOFF',self.run_tool('tools/learning.py','status'))
         self.assertIn('HANDOFF VALIDATED',self.run_tool('tools/handoff.py','validate',str(handoff_rel)))
+        self.replace_once('02_specs/TEACHING_MODE_ROUTE.md',
+                          'PROJECT_DEMO-GATE-G1: PROJECT',
+                          'PROJECT_DEMO-GATE-G1: CONCEPT')
+        self.assertIn('STALE: teaching mode route changed',
+                      self.run_tool('tools/handoff.py','validate',str(handoff_rel),expect=3))
+        self.replace_once('02_specs/TEACHING_MODE_ROUTE.md',
+                          'PROJECT_DEMO-GATE-G1: CONCEPT',
+                          'PROJECT_DEMO-GATE-G1: PROJECT')
         self.assertIn('NEXT_ACTION',self.run_tool('tools/handoff.py','preview',str(handoff_rel)))
         out=self.run_tool('tools/handoff.py','apply',str(handoff_rel))
         self.assertIn('APPLY: PASS',out)
@@ -308,23 +320,138 @@ Suggested Local Next:
         out = self.run_tool('tools/audit.py', '--route', expect=1)
         self.assertIn('missing 02_specs/PROJECT_GATE_WORKFLOW.md', out)
 
-    def test_tutor_context_embeds_teaching_contract_and_stop_rights(self):
+    def render_fixture_lesson(self):
+        script = r"""
+import sys,json
+from pathlib import Path
+sys.path.insert(0,str(Path.cwd()/'tools'))
+from lib.context import build_tutor_context
+from lib.repo import frontmatter,rd
+from lib.render import render_tutor_start_prompt
+ctx=build_tutor_context()
+fm=frontmatter(rd(ctx))
+print(json.dumps({'context':str(ctx.relative_to(Path.cwd())),
+                  'prompt':render_tutor_start_prompt(ctx,fm['lesson_id'],fm['handoff_filename']),
+                  'metadata':fm},ensure_ascii=False))
+"""
+        p = subprocess.run([sys.executable,'-c',script], cwd=self.root,
+                           capture_output=True,text=True)
+        self.assertEqual(p.returncode,0,p.stderr)
+        result=json.loads(p.stdout)
+        result['context_text']=self.read(result['context'])
+        return result
+
+    def test_tutor_prompt_includes_shared_and_project_only(self):
+        self.commit_simulation()
+        result=self.render_fixture_lesson()
+        context=result['context_text']
+        prompt=result['prompt']
+        self.assertEqual('PROJECT',result['metadata']['teaching_mode'])
+        self.assertIn(self.read('02_specs/TEACHING_CONTRACT.md').strip(),prompt)
+        self.assertIn(self.read('02_specs/TEACHING_PROJECT.md').strip(),prompt)
+        self.assertNotIn(self.read('02_specs/TEACHING_CONCEPT.md').strip(),prompt)
+        self.assertNotIn('## Teaching Contract',context)
+        self.assertIn('<!-- BEGIN:TUTOR_HANDOFF_PROTOCOL -->',context)
+        self.assertIn(self.read('02_specs/TUTOR_HANDOFF_PROTOCOL.md').strip(),context)
+        self.assertIn('Human 可随时停止',prompt)
+
+    def test_concept_only_uses_concept_strategy(self):
+        self.replace_once('02_specs/TEACHING_MODE_ROUTE.md',
+                          'PROJECT_DEMO-GATE-G1: PROJECT',
+                          'PROJECT_DEMO-GATE-G1: CONCEPT')
+        self.commit_simulation()
+        result=self.render_fixture_lesson()
+        self.assertEqual('CONCEPT',result['metadata']['teaching_mode'])
+        self.assertIn(self.read('02_specs/TEACHING_CONCEPT.md').strip(),result['prompt'])
+        self.assertNotIn(self.read('02_specs/TEACHING_PROJECT.md').strip(),result['prompt'])
+        self.assertNotIn('## Teaching Contract',result['context_text'])
+
+    def test_uncommitted_mode_route_blocks_new_lesson(self):
+        self.commit_simulation()
+        self.assertIn('CURRENT_STATE: READY_FOR_TUTOR', self.run_tool('tools/learning.py','status'))
+        self.replace_once('02_specs/TEACHING_MODE_ROUTE.md',
+                          'PROJECT_DEMO-GATE-G1: PROJECT',
+                          'PROJECT_DEMO-GATE-G1: CONCEPT')
+        status=self.run_tool('tools/learning.py','status')
+        self.assertIn('CURRENT_STATE: PENDING_LEARNING_CHANGES',status)
+        self.assertIn('02_specs/TEACHING_MODE_ROUTE.md',status)
+        self.assertIn('REPO AUDIT: PASS',self.run_tool('tools/audit.py','--route'))
+        self.run_git('add','02_specs/TEACHING_MODE_ROUTE.md')
+        self.run_git('commit','-m','TEST FIXTURE ONLY: approved mode change')
+        self.assertIn('CURRENT_STATE: READY_FOR_TUTOR',self.run_tool('tools/learning.py','status'))
+
+    def test_start_tutor_cli_writes_mode_prompt_and_transaction(self):
+        # 真实 CLI 路径，但替换浏览器与剪贴板操作，不访问外部应用。
         self.commit_simulation()
         script = r"""
 import sys
 from pathlib import Path
 sys.path.insert(0,str(Path.cwd()/'tools'))
-from lib.context import build_tutor_context
-print(build_tutor_context())
+import learning
+learning.copy_to_system_clipboard=lambda text:(True,'mock clipboard')
+learning.open_url=lambda url:(True,'mock browser')
+raise SystemExit(learning.start_tutor('https://example.invalid/tutor',None))
+"""
+        p=subprocess.run([sys.executable,'-c',script],cwd=self.root,
+                         capture_output=True,text=True)
+        self.assertEqual(p.returncode,0,p.stderr)
+        self.assertIn('TUTOR LESSON READY',p.stdout)
+        transaction=json.loads(self.read('.runtime/tutor_transaction.json'))
+        prompt=self.read(transaction['prompt_file'])
+        context=self.read(transaction['context_file'])
+        self.assertIn('# Project Mode',prompt)
+        self.assertNotIn('# Concept Mode',prompt)
+        self.assertIn('# Teaching Contract',prompt)
+        self.assertNotIn('# Teaching Contract',context)
+        self.assertIn('teaching_mode: PROJECT',context)
+        self.assertIn('CURRENT_STATE: PENDING_LESSON',self.run_tool('tools/learning.py','status'))
+        self.run_tool('tools/learning.py','discard-lesson','--confirm',transaction['lesson_id'])
+        self.assertIn('CURRENT_STATE: READY_FOR_TUTOR',self.run_tool('tools/learning.py','status'))
+
+    def test_missing_route_for_current_gate_rejects_tutor(self):
+        self.replace_once('02_specs/TEACHING_MODE_ROUTE.md',
+                          'PROJECT_DEMO-GATE-G1: PROJECT\n','')
+        out=self.run_tool('tools/audit.py','--route',expect=1)
+        self.assertIn('missing mapping for PROJECT_DEMO-GATE-G1',out)
+
+    def test_duplicate_route_rejected_not_silently_overridden(self):
+        self.replace_once('02_specs/TEACHING_MODE_ROUTE.md',
+                          'PROJECT_DEMO-GATE-G1: PROJECT',
+                          'PROJECT_DEMO-GATE-G1: PROJECT\nPROJECT_DEMO-GATE-G1: CONCEPT')
+        out=self.run_tool('tools/audit.py','--route',expect=1)
+        self.assertIn('duplicate mapping PROJECT_DEMO-GATE-G1',out)
+
+    def test_illegal_mode_is_rejected(self):
+        self.replace_once('02_specs/TEACHING_MODE_ROUTE.md',
+                          'PROJECT_DEMO-GATE-G1: PROJECT',
+                          'PROJECT_DEMO-GATE-G1: UNKNOWN')
+        out=self.run_tool('tools/audit.py','--route',expect=1)
+        self.assertIn('invalid mode',out)
+
+    def test_unknown_gate_route_is_rejected(self):
+        self.replace_once('02_specs/TEACHING_MODE_ROUTE.md',
+                          'PROJECT_DEMO-GATE-G1: PROJECT',
+                          'PROJECT_DEMO-GATE-G1: PROJECT\nMISSING-GATE-G1: PROJECT')
+        out=self.run_tool('tools/audit.py','--route',expect=1)
+        self.assertIn('unknown Gate MISSING-GATE-G1',out)
+
+    def test_missing_mode_spec_is_rejected(self):
+        (self.root/'02_specs/TEACHING_PROJECT.md').unlink()
+        out=self.run_tool('tools/audit.py','--route',expect=1)
+        self.assertIn('missing 02_specs/TEACHING_PROJECT.md',out)
+
+    def test_master_context_includes_current_mode_route(self):
+        script = r"""
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path.cwd()/'tools'))
+from lib.context import build_master_context
+print(build_master_context('NONE'))
 """
         p = subprocess.run([sys.executable, '-c', script], cwd=self.root,
                            capture_output=True, text=True)
-        self.assertEqual(p.returncode, 0, p.stderr)
-        context = self.read(p.stdout.strip())
-        contract = self.read('02_specs/TEACHING_CONTRACT.md')
-        self.assertIn('## Teaching Contract', context)
-        self.assertIn(contract.strip(), context)
-        self.assertIn('Human 有权随时停止', contract)
+        self.assertEqual(p.returncode,0,p.stderr)
+        self.assertIn('PROJECT_DEMO-GATE-G1: PROJECT',self.read(p.stdout.strip()))
 
 
 if __name__ == '__main__':
