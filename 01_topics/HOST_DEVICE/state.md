@@ -16,23 +16,24 @@ Objective:
 实现从合成采样数据、设备协议到 Python Host 的可复现端到端数据链路，逐步进入连续流和真实采集。
 
 Reason:
-Host–Device Communication 当前 L1（G1 软件契约已由 A1/PASS 证据支撑，实机链路未验证）；已有 Verilog/STA/Python 实践基础。优先通过可运行的项目组合已学能力，降低反复在单点 Gate 打转的成本。
+Host–Device Communication 当前 L1（G1 软件契约已由 A1/PASS 证据支撑；实机链路将在 G2 验证）；已有 Verilog/STA/Python 实践基础。优先通过可运行的项目组合已学能力，降低反复在单点 Gate 打转的成本。
 
 ## Current Objective
-G2（**最小实机闭环**）：在确认可用的板载物理链路后，将 FPGA 合成 ramp/PRBS 样本按 Packet V1 从 UART 发送到 Python Host。首个 Lesson 先完成实际开发板/UART 物理链路确认，以及 UART RX/TX RTL 与功能仿真；未取得真实板卡运行证据前不声称实机通过。
+G2（**最小实机闭环**）：本课完成实际开发板/UART 物理链路确认、XDC 引脚约束、UART RX/TX RTL 片段审阅、TB 输入用例与功能仿真；后续 Lesson 进入真实板卡回环。
 
 ## Current Snapshot
 
 Passed:
-- HOST_DEVICE-GATE-G1：C1/C2/C3 VERIFIED，依据 Human A1 独立判断与软件参考材料 PASSED；仅 SOFTWARE_ONLY，不代表 FPGA 实机完成。
+- HOST_DEVICE-GATE-G1：C1/C2/C3 VERIFIED，依据 Human A1 独立判断与软件参考材料 PASSED，验证等级 SOFTWARE_ONLY；FPGA 实机完成度在 G2 记录。
 
 In Progress:
-- HOST_DEVICE-GATE-G2 已 OPEN：首个 Lesson 确认真实开发板型号、UART TX/RX 引脚、USB-UART 桥接器/电平/共地、单 COM 口双向访问；随后实现并仿真 UART RX/TX 与 16 个 int16 分组/Packet V1 封包。
+- HOST_DEVICE-GATE-G2 已 OPEN：本课按“平台事实 → XDC 引脚约束 → RTL 片段审阅 → TB 输入用例 → 功能仿真”推进；实机回环在链路确认后的后续 Lesson 进行。
 
 Not Yet Verified:
-- FPGA UART RX/TX RTL 功能仿真、板上引脚/USB-UART 物理连线、PC→FPGA→PC 实机回环与连续稳定性均未完成。
-- 未来目标采样率、真实带宽与背压/FIFO 溢出边界未验证；G1 的 115200 baud、每 20 ms/16 样本仅为理论可行性预算。
-- Packet V1 不保证 PC→FPGA 输入字节完整性、不保证零丢失，亦不保证不存在载荷内合法伪帧诱发的误同步。
+- 待完成：FPGA UART RX/TX RTL 功能仿真。
+- 待确认：板上 UART 引脚、USB-UART 桥接器、电平、共地与单 COM 口双向访问。
+- 待验证：PC→FPGA→PC 实机回环与连续稳定性。
+- 待预算：目标采样率、真实带宽与 FIFO 溢出边界；当前 115200 baud、每 20 ms/16 样本为理论预算，实测数据在后续 Lesson 补充。
 
 ## Current Blockers
 
