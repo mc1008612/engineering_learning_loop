@@ -2,9 +2,9 @@
 schema: topic_state
 topic: HOST_DEVICE
 status: ACTIVE
-current_gate: HOST_DEVICE-GATE-G1
-master_review_required: true
-master_review_reason: POSSIBLE_LEVEL_CHANGE
+current_gate: HOST_DEVICE-GATE-G2
+master_review_required: false
+master_review_reason: NONE
 last_lesson_id: HOST_DEVICE-LSN-20261017-110156
 ---
 
@@ -16,18 +16,18 @@ Objective:
 实现从合成采样数据、设备协议到 Python Host 的可复现端到端数据链路，逐步进入连续流和真实采集。
 
 Reason:
-Host–Device Communication 当前 L0；已有 Verilog/STA/Python 实践基础。优先通过可运行的项目组合已学能力，降低反复在单点 Gate 打转的成本。
+Host–Device Communication 当前 L1（G1 软件契约已由 A1/PASS 证据支撑，实机链路未验证）；已有 Verilog/STA/Python 实践基础。优先通过可运行的项目组合已学能力，降低反复在单点 Gate 打转的成本。
 
 ## Current Objective
-G1（**最小可用范围**）：完成 Packet V1 契约的**独立审签**、**独立推导并复核 golden vectors**、以及**独立设计并判读**必要故障测试。代码实现可采用 AI 协作，但规格、向量与正确性判定由 Human 持有。
+G2（**最小实机闭环**）：在确认可用的板载物理链路后，将 FPGA 合成 ramp/PRBS 样本按 Packet V1 从 UART 发送到 Python Host。首个 Lesson 先完成实际开发板/UART 物理链路确认，以及 UART RX/TX RTL 与功能仿真；未取得真实板卡运行证据前不声称实机通过。
 
 ## Current Snapshot
 
 Passed:
-- HOST_DEVICE-GATE-G1：Tutor 本 Lesson 判定 C1/C2/C3 VERIFIED，依据 Human A1 独立判断与软件参考材料请求 PASSED；仅 SOFTWARE_ONLY，不代表 FPGA 实机完成。
+- HOST_DEVICE-GATE-G1：C1/C2/C3 VERIFIED，依据 Human A1 独立判断与软件参考材料 PASSED；仅 SOFTWARE_ONLY，不代表 FPGA 实机完成。
 
 In Progress:
-- 等待 Master Review 接收 G1 Handoff 并确认下一 Gate 路线；下一硬件阶段拟执行 PC 原始 signed-int16 LE → FPGA UART RX/16 样本封组/Packet V1 → UART TX → Python Parser。
+- HOST_DEVICE-GATE-G2 已 OPEN：首个 Lesson 确认真实开发板型号、UART TX/RX 引脚、USB-UART 桥接器/电平/共地、单 COM 口双向访问；随后实现并仿真 UART RX/TX 与 16 个 int16 分组/Packet V1 封包。
 
 Not Yet Verified:
 - FPGA UART RX/TX RTL 功能仿真、板上引脚/USB-UART 物理连线、PC→FPGA→PC 实机回环与连续稳定性均未完成。

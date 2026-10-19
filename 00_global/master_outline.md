@@ -2,7 +2,7 @@
 schema: master_outline
 current_topic: HOST_DEVICE
 current_action: TUTOR
-master_checkpoint: HOST_DEVICE-GATE-G1
+master_checkpoint: HOST_DEVICE-GATE-G2
 ---
 
 # Master Outline

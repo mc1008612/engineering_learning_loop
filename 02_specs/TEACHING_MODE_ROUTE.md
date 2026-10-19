@@ -1,6 +1,7 @@
 ---
 schema: teaching_mode_route
 HOST_DEVICE-GATE-G1: PROJECT
+HOST_DEVICE-GATE-G2: PROJECT
 ---
 
 # Teaching Mode Route

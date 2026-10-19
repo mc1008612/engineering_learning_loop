@@ -57,7 +57,7 @@ Mandatory Criteria 全部满足 + 至少一条当前 Gate 的 `PASS` Evidence + 
 
 ## HOST_DEVICE-GATE-G2 — FPGA→Host 最小实机数据闭环
 
-Status: `DRAFT`
+Status: `OPEN`
 Mandatory: `YES`
 
 ### Objective
@@ -65,7 +65,7 @@ Mandatory: `YES`
 
 ### Prerequisites
 - HOST_DEVICE-GATE-G1 `PASSED`。
-- Master 已确认 FPGA 具体板卡、可用物理传输接口及 Host 连接方案；不预设 UART 必定存在。
+- Master 已知目标平台为 Vivado 2018.3 / XC7A35T-FGG484-2；取得实机 Evidence 前必须在本 Gate 首个 Lesson 确认实际开发板型号、UART TX/RX 引脚、USB-UART 桥接器、电平/共地与同一 COM 口双向访问。未确认前只允许 RTL/TB 仿真与 Host 离线验证。
 
 ### Mandatory Criteria
 - C1 — FPGA 可重复输出 ramp/PRBS 样本；RTL/TB 与实际发送格式遵守 Packet V1 契约。

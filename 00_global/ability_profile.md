@@ -2,7 +2,7 @@
 schema: ability_profile
 scale: L0-L6
 source: initial_self_report_baseline
-last_master_review: 2026-10-13
+last_master_review: 2026-10-19
 ---
 
 # Ability Profile
@@ -35,7 +35,7 @@ last_master_review: 2026-10-13
 | Python Engineering | L3 | ROS、threading/asyncio/queue 有实践；完整设备 GUI 不足 |
 | C / Build Tooling | L2 | C、Make/CMake/Git 基础可用；无大型系统级 C 工程 |
 | LabVIEW Architecture | L2 | Event/Queue/State/SubVI 基础；无真设备闭环 |
-| Host–Device Communication | L0 | 尚未完成真实设备协议/连续流闭环；下一阶段以 HOST_DEVICE-GATE-G1 开始积累 Host 协议与解析 Evidence，当前等级不变 |
+| Host–Device Communication | L1 | G1 的 Packet V1 规格审签、独立 Golden Vector、故障设计与统计判读为 A1/PASS（SOFTWARE_ONLY）；尚缺 FPGA 实机链路与连续流闭环 |
 | Measurement / DSP | L1 | 学过但碎片化，需要重建 FFT/ADC 指标体系 |
 | Linux Driver / DMA | L0 | 尚无真实实践 |
 | C++ / Qt | L0 | 尚未系统学习 |
