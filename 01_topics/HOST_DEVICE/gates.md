@@ -8,7 +8,7 @@ topic_completion_rule: ALL_MANDATORY_GATES_PASSED_AND_MASTER_CONFIRMED
 
 ## HOST_DEVICE-GATE-G1 — Packet V1 与 Python Reference Client
 
-Status: `OPEN`
+Status: `PASSED`
 Mandatory: `YES`
 
 ### Objective
@@ -40,15 +40,20 @@ Mandatory Criteria 全部满足 + 至少一条当前 Gate 的 `PASS` Evidence + 
 
 ### Criterion Progress
 
-- C1: `PARTIAL`
-- C2: `PARTIAL`
-- C3: `PARTIAL`
+- C1: `VERIFIED`
+- C2: `VERIFIED`
+- C3: `VERIFIED`
 
 ### Evidence References
 
 - HOST_DEVICE-EXP-001
 - HOST_DEVICE-EXP-002
 - HOST_DEVICE-EXP-003
+- HOST_DEVICE-EXP-004
+- HOST_DEVICE-EXP-005
+- HOST_DEVICE-EXP-006
+- HOST_DEVICE-EXP-007
+- HOST_DEVICE-EXP-008
 
 ## HOST_DEVICE-GATE-G2 — FPGA→Host 最小实机数据闭环
 
