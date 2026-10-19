@@ -74,7 +74,7 @@ Frontmatter 后必须各自且只出现一次以下五个二级标题；推荐�
 ## Notes Delta
 ```
 
-不要改名，不要省略，也不要重复同名 required section。Validator 按标题解析，不依赖它们的相对顺序。
+五个 required section 各出现一次，标题名称与拼写按上面清单保持原样。Validator 按标题解析，不依赖它们的相对顺序。
 
 ## Last Lesson
 
@@ -89,11 +89,11 @@ Evidence:
 Suggested Local Next:
 ```
 
-内容可以多行，但必须真实反映本 Lesson；不要为了“完成课程”把未验证能力写成通过。
+内容可以多行，并真实反映本 Lesson；未验证能力按实际状态记录。
 
 ## State Delta
 
-只允许修改当前 Topic State 的学习快照；不能修改 `topic/status/current_gate`，不能修改 Ability。
+State Delta 修改范围限定为当前 Topic State 的学习快照；`topic/status/current_gate` 与 Ability 保持原值。
 
 输出一个 fenced JSON object：
 
@@ -221,10 +221,9 @@ Assistance = A0 | A1 | A2 | A3
 - `id/title/type/result/assistance/gate/lesson_id/observation/interpretation` 必填；
 - `gate` 必须等于当前 Gate；
 - `lesson_id` 必须等于当前 Lesson；
-- `references` 只能指向已经存在的 Evidence，或本数组中**更早定义**的新 Evidence；
-- 不能自引用，也不能引用后面才定义的 Evidence；
+- `references` 指向已经存在的 Evidence，或本数组中**更早定义**的新 Evidence；引用顺序保持时间先后（自引用与后向引用视为无效）；
 - `artifacts` 是可选列表；
-- 不要仅因为 Lesson COMPLETE 就制造 PASS Evidence。
+- PASS Evidence 以真实观察为依据；Lesson COMPLETE 只记录课程完成状态。
 
 ## Notes Delta
 
@@ -242,7 +241,7 @@ Assistance = A0 | A1 | A2 | A3
 }
 ```
 
-一个 JSON item 对应一个 Markdown bullet。多个独立知识点应写成多个 item，不要把多个 bullet 塞进一个字符串。
+一个 JSON item 对应一个 Markdown bullet；多个独立知识点分别成 item，每个字符串保持单条 bullet 的粒度。
 
 ## Final Checklist
 
