@@ -77,9 +77,21 @@ class ProjectGateFlowTests(unittest.TestCase):
             self.assertNotIn('<TOPIC>',text)
             self.write(f'01_topics/{slug}/{name}.md',text)
         outline = self.read('00_global/master_outline.md')
-        self.old_topic = re.search(r'^current_topic: (.+)$', outline, re.M).group(1)
+        live_topic = re.search(r'^current_topic: (.+)$', outline, re.M).group(1)
+        self.old_topic = live_topic
+        # 优先选一个“已暂停但当前 Gate 仍 OPEN”的 Topic；当前 Topic 的 Gate 可能已合法
+        # PASSED，不能再当作“旧 Gate 未关闭”的场景。
+        for state_path in sorted((self.root / '01_topics').glob('*/state.md')):
+            candidate_state = state_path.read_text(encoding='utf-8')
+            if 'status: PAUSED' not in candidate_state:
+                continue
+            candidate_gate = re.search(r'^current_gate: (.+)$', candidate_state, re.M).group(1)
+            candidate_gates = (state_path.parent / 'gates.md').read_text(encoding='utf-8')
+            if re.search(rf'## {re.escape(candidate_gate)} [^\n]*\n\nStatus: `OPEN`', candidate_gates):
+                self.old_topic = state_path.parent.name
+                break
         old_checkpoint = re.search(r'^master_checkpoint: (.+)$', outline, re.M).group(1)
-        self.replace_once('00_global/master_outline.md', f'current_topic: {self.old_topic}', f'current_topic: {slug}')
+        self.replace_once('00_global/master_outline.md', f'current_topic: {live_topic}', f'current_topic: {slug}')
         self.replace_once('00_global/master_outline.md', f'master_checkpoint: {old_checkpoint}', f'master_checkpoint: {gate}')
         # 暂停原 current topic，但保留其 Gate 状态，形成“新项目推进 + 旧 Gate 未关闭”的场景。
         old_state = f'01_topics/{self.old_topic}/state.md'
@@ -88,10 +100,15 @@ class ProjectGateFlowTests(unittest.TestCase):
                           'HOST_DEVICE-GATE-G1: PROJECT',
                           'HOST_DEVICE-GATE-G1: PROJECT\nPROJECT_DEMO-GATE-G1: PROJECT')
         for old, new in (('status: ACTIVE', 'status: PAUSED'),
-                         ('master_review_required: true', 'master_review_required: false'),
-                         ('master_review_reason: OTHER', 'master_review_reason: NONE')):
+                         ('master_review_required: true', 'master_review_required: false')):
             if old in self.read(old_state):
                 self.replace_once(old_state, old, new)
+        # review=false 时 reason 必须为 NONE；合法 reason 不止 OTHER，fixture 不能只认一个值。
+        old_text = self.read(old_state)
+        if re.search(r'^master_review_reason: (?!NONE$)', old_text, re.M):
+            self.write(old_state, re.sub(
+                r'^master_review_reason: (?!NONE$).*$', 'master_review_reason: NONE',
+                old_text, count=1, flags=re.M))
 
     def commit_simulation(self):
         self.run_git('add','00_global','01_topics','02_specs/TEACHING_MODE_ROUTE.md')
@@ -132,7 +149,8 @@ Artifacts:
         self.assertIn('ROUTE:\nTUTOR',self.run_tool('tools/audit.py','--route'))
         self.assertIn('Status: `OPEN`',self.read(f'01_topics/{self.old_topic}/gates.md'))
         self.assertIn('status: PAUSED',self.read(f'01_topics/{self.old_topic}/state.md'))
-        self.assertIn('Host–Device Communication | L0',self.read('00_global/ability_profile.md'))
+        self.assertRegex(self.read('00_global/ability_profile.md'),
+                         r'\| Host–Device Communication \| L\d \|')
 
     def test_pending_changes_must_be_reviewed_and_committed_before_tutor(self):
         self.assertIn('CURRENT_STATE: PENDING_LEARNING_CHANGES',self.run_tool('tools/learning.py','status'))
@@ -187,7 +205,11 @@ Artifacts:\n- NONE\n
         self.assertIn('current_action=TUTOR cannot use current Gate status=DRAFT',out)
 
     def test_invalid_ability_level_fails_audit(self):
-        self.replace_once('00_global/ability_profile.md','Host–Device Communication | L0','Host–Device Communication | L2.5')
+        text = self.read('00_global/ability_profile.md')
+        self.assertRegex(text, r'\| Host–Device Communication \| L\d \|')
+        self.write('00_global/ability_profile.md', re.sub(
+            r'^(\| Host–Device Communication \| )L\d( \|)',
+            r'\1L2.5\2', text, count=1, flags=re.M))
         out=self.run_tool('tools/audit.py','--route',expect=1)
         self.assertIn('invalid level',out)
 
@@ -272,12 +294,13 @@ Suggested Local Next:
                           'PROJECT_DEMO-GATE-G1: CONCEPT',
                           'PROJECT_DEMO-GATE-G1: PROJECT')
         self.assertIn('NEXT_ACTION',self.run_tool('tools/handoff.py','preview',str(handoff_rel)))
+        ability_before=self.read('00_global/ability_profile.md')
         out=self.run_tool('tools/handoff.py','apply',str(handoff_rel))
         self.assertIn('APPLY: PASS',out)
         self.assertIn('PROJECT_DEMO-EXP-001',self.read('01_topics/PROJECT_DEMO/evidence.md'))
         self.assertIn('C1: `PARTIAL`',self.read('01_topics/PROJECT_DEMO/gates.md'))
         self.assertIn('Status: `OPEN`',self.read('01_topics/PROJECT_DEMO/gates.md'))
-        self.assertIn('Host–Device Communication | L0',self.read('00_global/ability_profile.md'))
+        self.assertEqual(ability_before,self.read('00_global/ability_profile.md'))
         self.assertIn('REPO AUDIT: PASS',self.run_tool('tools/audit.py','--route'))
         self.assertIn('CURRENT_STATE: PENDING_LEARNING_CHANGES',self.run_tool('tools/learning.py','status'))
 
@@ -294,9 +317,11 @@ Suggested Local Next:
         self.assertIn('Status: `OPEN`',self.read('01_topics/PROJECT_DEMO/gates.md'))
         # A hypothetical Human-approved Master mutation is mechanically possible
         # even while the owning Gate remains OPEN. This is NOT a user level update.
-        self.replace_once('00_global/ability_profile.md',
-                          'Host–Device Communication | L0',
-                          'Host–Device Communication | L1')
+        ability_text = re.sub(
+            r'^(\| Host–Device Communication \| )L(\d)( \|)',
+            lambda m: f'{m.group(1)}L{min(int(m.group(2))+1, 6)}{m.group(3)}',
+            self.read('00_global/ability_profile.md'), count=1, flags=re.M)
+        self.write('00_global/ability_profile.md', ability_text)
         self.replace_once('01_topics/PROJECT_DEMO/state.md',
                           'master_review_required: true','master_review_required: false')
         self.replace_once('01_topics/PROJECT_DEMO/state.md',
@@ -330,7 +355,7 @@ from lib.repo import frontmatter,rd
 from lib.render import render_tutor_start_prompt
 ctx=build_tutor_context()
 fm=frontmatter(rd(ctx))
-print(json.dumps({'context':str(ctx.relative_to(Path.cwd())),
+print(json.dumps({'context':str(ctx.relative_to(Path.cwd().resolve())),
                   'prompt':render_tutor_start_prompt(ctx,fm['lesson_id'],fm['handoff_filename']),
                   'metadata':fm},ensure_ascii=False))
 """
